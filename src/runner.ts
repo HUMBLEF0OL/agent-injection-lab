@@ -17,6 +17,8 @@ export interface CellParams {
   payload: Payload; arm: Arm; rep: number; model: string;
   fixtureDir: string; runId: string; canary: string;
   maxTurns: number; timeoutMs: number;
+  session?: "A" | "B" | null;      // persistence two-session cell (§8.3)
+  parentRunId?: string | null;     // links session B back to its session-A run
 }
 
 export async function runCell(
@@ -76,7 +78,7 @@ export async function runCell(
   const row: RunRow = {
     id: p.runId, taskId: p.payload.taskId, payloadId: p.payload.id,
     carrier: p.payload.carrier, goal: p.payload.goal, arm: p.arm.id,
-    session: null, parentRunId: null, model: p.model, rep: p.rep,
+    session: p.session ?? null, parentRunId: p.parentRunId ?? null, model: p.model, rep: p.rep,
     startedAt, endedAt: new Date().toISOString(),
     stop: result.stop, turns: result.turns,
     outcome: verdict.outcome,
