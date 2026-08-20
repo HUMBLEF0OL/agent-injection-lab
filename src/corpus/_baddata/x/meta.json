@@ -1,0 +1,2 @@
+{ "id": "x", "carrier": "nope", "goal": "exfil-bash", "style": "piggyback",
+  "taskId": "001-off-by-one", "technique": "t", "realism": "r" }
