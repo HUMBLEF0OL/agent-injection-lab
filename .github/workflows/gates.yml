@@ -1,0 +1,57 @@
+name: gates
+
+# Keyless CI (§14): npm install, then the whole tree verifies with no credentials
+# and no network. NO live sweep runs here. The Pages deploy publishes report.html
+# on the default branch only.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run verify-fixtures
+      - run: npm run verify-corpus
+      - run: npm run verify-arms
+      - run: npm run evidence
+      - run: npm run check-leaks
+      - name: report-reproduction gate
+        run: node scripts/check-report.mjs
+
+  deploy-pages:
+    # Publish report.html on the default branch only — never on PRs or feature branches.
+    needs: gates
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage report.html as the site root
+        run: |
+          mkdir -p _site
+          cp report.html _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
