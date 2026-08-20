@@ -1,0 +1,7 @@
+{
+  "name": "agent-injection-lab",
+  "description": "Check whether your Claude Code permission config stops repo-borne prompt injections. Thin wrapper over the same check(path) the clone-and-run path uses.",
+  "version": "0.1.0",
+  "author": { "name": "Amit Rana" },
+  "license": "MIT"
+}
