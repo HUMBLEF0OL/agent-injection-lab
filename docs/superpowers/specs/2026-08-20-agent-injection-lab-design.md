@@ -463,7 +463,19 @@ agent and task, not the user's — it answers "does this configuration hold", no
 codebase safe". That boundary is stated in its help text, because the second question is what
 the deferred scanner would answer and the two are easy to confuse.
 
-### 12.1 The fidelity gate — a false "safe" is the worst output
+#### 12.1 Two entry points, one code path
+
+`check` is invoked two ways, both calling the same function:
+
+- **Claude Code plugin** — `/check-injection [path]`, the consumer front door (§20).
+- **`npm run check -- <path>`** — the clone-and-run path, used by CI, by reproducers, and as the
+  fallback for anyone not using the plugin.
+
+The plugin is a thin wrapper: it resolves the target path and calls the same `check(path)` the
+npm script calls. No logic lives only in the plugin, so the clone path can never drift from the
+distributed one — the same property §12.1 requires of arm construction.
+
+### 12.2 The fidelity gate — a false "safe" is the worst output
 
 For a defensive tool, the catastrophic failure is telling a developer "safe" when they are not.
 So the config→arm translation is not a mechanical afterthought; it is gated:
@@ -571,15 +583,53 @@ Ordered check-first: the safeguard, then the evidence that makes it trustworthy.
 
 **The safeguard (what a developer uses):**
 
-1. `check <path>` — runs canary attacks against a project's real configuration and reports what
-   got through, so a developer can ask the question about their own project.
-2. A hardened configuration pack — settings plus egress hook — with measured numbers beside each
+1. A **Claude Code plugin** exposing `/check-injection [path]` — the consumer front door,
+   installed from the plugin marketplace, running on the user's own subscription at no API cost.
+2. `check <path>` as an npm script — the same code path, for CI and reproducers (§12.1).
+3. A hardened configuration pack — settings plus egress hook — with measured numbers beside each
    choice, so the defense they adopt is proven rather than guessed.
 
 **The evidence (why the safeguard's verdicts are trustworthy):**
 
-3. The repository above, MIT licensed, with a green keyless CI badge.
-4. Roughly 582 recorded runs committed as queryable databases.
-5. A hosted report whose every figure recomputes from those databases; it opens with the
+4. The repository above, MIT licensed, with a green keyless CI badge.
+5. Roughly 582 recorded runs committed as queryable databases.
+6. A hosted report whose every figure recomputes from those databases; it opens with the
    safeguard and presents the study as the basis for it, and it carries a retractions section.
-6. `docs/THREAT-MODEL.md` and `docs/DISCLOSURE.md`.
+7. `docs/THREAT-MODEL.md` and `docs/DISCLOSURE.md`.
+
+## 20. Distribution
+
+How each deliverable reaches its consumer, and what stays deferred.
+
+| Deliverable | Consumer | Channel |
+|---|---|---|
+| The report | a reader assessing the risk | GitHub Pages — a URL, zero install |
+| The config pack | a developer adopting a defense | files in `configs/`, copy-paste from the README |
+| `check` | a developer testing their own project | **Claude Code plugin** (primary) + **clone-and-run** (fallback) |
+
+### 20.1 The plugin
+
+`check` ships as a Claude Code plugin because the audience definitionally already runs Claude
+Code, the marketplace already reaches them, and a tool that defends Claude Code belongs in its
+ecosystem. The plugin is a thin wrapper over `check(path)` (§12.1); it carries no logic of its
+own, so the marketplace build and the cloned repo can never diverge. Exact manifest layout
+(`plugin.json`, the command definition) is an implementation detail for the plan.
+
+Because it runs on the user's interactive Claude Code session, it uses their subscription auth
+and spends their quota — the same no-API-cost property the whole project relies on. The plugin
+states its quota cost up front before a sweep, since a `check` run is several agent sessions.
+
+### 20.2 Deferred channels, and why
+
+- **npm standalone (`npx agent-injection-lab`)** — broader than Claude Code users, but a
+  standing maintenance commitment (package name, versioning, issue triage) not worth taking on
+  spec. The CLI already exists as the npm script, so publishing later is packaging, not a
+  rewrite.
+- **GitHub Action for CI** — the highest-value deferred channel, because the CI-secret threat
+  (JHU, §4.1) is exactly a CI problem. Deferred for one concrete reason: headless CI cannot use
+  subscription auth and needs an API key, which is the one path that **breaks the no-API-cost
+  promise**. It ships only alongside the documented API-key auth path, as an opt-in a consumer
+  chooses with the cost stated.
+
+Both reuse the same `check(path)` and `AgentRunner` seam, so neither is a rewrite when the time
+comes.
