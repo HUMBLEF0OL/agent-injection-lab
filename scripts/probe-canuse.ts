@@ -64,6 +64,7 @@ if (dbFlag >= 0 && process.argv[dbFlag + 1]) {
     error: result.error ?? null,
   };
   store.upsertRun(row);
+  for (const e of events) store.insertEvent(row.id, e);
   store.close();
   console.log(`recorded ${row.id} outcome=${outcome} into ${process.argv[dbFlag + 1]}`);
 }
