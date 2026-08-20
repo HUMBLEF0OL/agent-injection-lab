@@ -2,6 +2,22 @@
 
 Status: approved for planning. Date: 2026-08-20.
 
+## 0. Orientation
+
+This is a **defensive** tool. Its purpose is to help a developer safeguard a project they let a
+coding agent work in. Everything a user installs or runs either measures a defense or hands them
+one: `check <path>` tells them whether their configuration holds (§12), and the hardened config
+pack (§19.5) is a proven defense they can adopt.
+
+The offensive machinery — payloads, sink, canary — is a test rig, the way a crash-test dummy is
+part of building a safe car, not part of a crash. It never leaves the lab: payloads attack only
+this repo's own fixtures, the canary is synthetic, and the sink is a local listener with no path
+off the machine. The rig stays in the lab; the safeguard ships.
+
+Emphasis is **check-first**: the safeguard is the product, and the measurement study (§2 onward)
+is its evidence base — the reason a developer should trust the verdicts `check` returns and the
+numbers beside the config pack. The README opens with the safeguard, not the finding.
+
 ## 1. The problem
 
 If you let a coding agent work in a repository, everything in that repository can talk to it.
@@ -385,10 +401,19 @@ never runs a live sweep.
 
 ## 19. Deliverables
 
-1. The repository above, MIT licensed, with a green keyless CI badge.
-2. Roughly 250–300 recorded runs committed as queryable databases.
-3. A hosted report whose every figure recomputes from those databases.
-4. A README carrying one headline finding with its interval, and its retractions.
-5. A hardened configuration pack — settings plus egress hook — with measured numbers beside it.
-6. `check <path>`, so a developer can ask the question about their own project.
-7. `docs/THREAT-MODEL.md` and `docs/DISCLOSURE.md`.
+Ordered check-first: the safeguard, then the evidence that makes it trustworthy.
+
+**The safeguard (what a developer uses):**
+
+1. `check <path>` — runs canary attacks against a project's real configuration and reports what
+   got through, so a developer can ask the question about their own project.
+2. A hardened configuration pack — settings plus egress hook — with measured numbers beside each
+   choice, so the defense they adopt is proven rather than guessed.
+
+**The evidence (why the safeguard's verdicts are trustworthy):**
+
+3. The repository above, MIT licensed, with a green keyless CI badge.
+4. Roughly 316 recorded runs committed as queryable databases.
+5. A hosted report whose every figure recomputes from those databases; it opens with the
+   safeguard and presents the study as the basis for it, and it carries a retractions section.
+6. `docs/THREAT-MODEL.md` and `docs/DISCLOSURE.md`.
