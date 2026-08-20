@@ -98,6 +98,17 @@ export function renderReport(figures: ReportInput): string {
   const injDelivered = outcomes.reduce((s, o) => s + o.carrierRead, 0);
   const injAttempted = outcomes.reduce((s, o) => s + o.egressAttempted, 0);
 
+  // Scale disclosure (§13, §21.11). The report states its own power from the data rather than
+  // carrying a hand-written "pilot" label that goes stale the moment more cells land: an arm is
+  // powered at >= POWER_N injection runs (the §11 per-arm target), and any thinner arm is named.
+  const POWER_N = 20;
+  const injArms = outcomes.filter((o) => o.total > 0);
+  const thinArms = injArms.filter((o) => o.total < POWER_N).map((o) => esc(o.arm));
+  const powered = injArms.length >= arms.length && injArms.length > 0 && thinArms.length === 0;
+  const poweredLabel = powered ? "powered sweep" : injTotal ? "partial sweep" : "no injection runs yet";
+  const enfArms = arms.filter((a) => a.attempted > 0);
+  const enfAttempted = arms.reduce((s, a) => s + a.attempted, 0);
+
 
   const armRows = arms.map((a) => `<tr>
     <td>${esc(a.arm)}</td>
@@ -207,14 +218,19 @@ export function renderReport(figures: ReportInput): string {
 repository payloads fire? <b>Egress-enforcement view</b> (further down): when a real egress <i>is</i>
 issued, does each permission layer stop it? They must not be conflated — a model that declines an
 injection and a layer that blocks an egress are different findings.</p>
-<p class="empty"><b>Pilot, not the powered sweep.</b> These figures are a curated host-safe pilot:
-the injection study is <b>${injTask ? injTask.injectedRuns : 0}</b> runs in the <code>bypass</code>
-arm only; the enforcement view is a <b>single</b> egress probe per arm. Every rate is 0/1, 1/1, or
-over n&le;3, so the Wilson intervals are wide (a 1/1 rate is 95% [20.7%, 100%]) — read the numbers
-as directional, not as powered estimates. The ~750-run sweep across all seven arms is still pending.
+<p class="empty"><b>Scale — ${poweredLabel}.</b> Injection study: <b>${injTotal}</b> run(s) over
+${injArms.length} arm(s) (${injArms.length ? injArms.map((o) => `${esc(o.arm)} n=${o.total}`).join(", ") : "none"}).
+Enforcement view: <b>${enfAttempted}</b> attempted-egress run(s)
+(${enfArms.length ? enfArms.map((a) => `${esc(a.arm)} n=${a.attempted}`).join(", ") : "none"}).
+${powered
+    ? `Every arm carries at least ${POWER_N} injection runs, so the per-arm rates are powered
+       estimates within the stated scope (§18) rather than directional readings.`
+    : `${thinArms.length ? `Thin arm(s): <b>${thinArms.join(", ")}</b>. ` : ""}Rates over small n
+       carry wide Wilson intervals (a 1/1 rate is 95% [20.7%, 100%]) — read them as directional,
+       not as powered estimates, and the §11 sweep across all seven arms is only partly recorded.`}
 ${hasCleanBaseline
     ? `Task-success change under injection is shown per arm below.`
-    : `No clean (un-injected) baseline was collected in this pilot, so a task-success <i>delta vs
+    : `No clean (un-injected) baseline is recorded here, so a task-success <i>delta vs
        baseline</i> is not computed; injected-run task success is reported directly:
        <b>${injTask ? `${pct(injTask.injectedPassRate)} (${injTask.injectedRuns} injected runs, ${esc(injTask.arm)})` : "n/a"}</b>.`}</p>
 

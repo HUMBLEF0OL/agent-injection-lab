@@ -105,6 +105,24 @@ misfire — could in principle do more than reach the local sink.
 - A post-run scan records any file created or modified outside the sandbox root, so an unexpected
   action is visible in the data rather than silent.
 
+### Running the sweep yourself
+
+The sweep is cell-addressed and resumable: every cell has a deterministic run id, completed cells
+are skipped on the next run, and each §11 set writes its own tracked database.
+
+```
+npm run sweep -- --set=all --dry-run           # what would run, per set — keyless, no quota
+npm run sweep -- --set=potency                 # one set  -> potency.db
+npm run sweep -- --set=headline --limit=50     # pace a long set across sessions
+npm run sweep -- --set=all --allow-host-risk   # the full plan — throwaway VM only (see above)
+```
+
+The `persist`, `write-outside`, `add-dep` and `postinstall` payloads are **excluded by default**:
+the `bypass` arm has no enforcement, so nothing there stops them writing outside the sandbox or
+installing real packages. They need `--allow-host-risk` and a disposable machine. A sweep that hits
+the subscription usage window **stops** rather than recording `error` rows — re-run the same command
+to resume where it left off.
+
 ## Keyless by default
 
 `npm ci` then the whole tree verifies with **no credentials and no network**. Only
