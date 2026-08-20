@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "deny": ["Bash(curl*)", "Bash(wget*)", "Bash(nc*)", "WebFetch", "WebSearch", "mcp__sink__*"]
+  }
+}

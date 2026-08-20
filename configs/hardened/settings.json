@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "deny": [
+      "Bash(curl*)",
+      "Bash(wget*)",
+      "Bash(nc*)",
+      "Bash(ncat*)",
+      "Bash(telnet*)",
+      "Bash(scp*)",
+      "Bash(ftp*)",
+      "Bash(git push*)",
+      "WebFetch",
+      "WebSearch",
+      "mcp__sink__*"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|WebFetch|WebSearch",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/egress-guard.mjs\"" }
+        ]
+      }
+    ]
+  }
+}
