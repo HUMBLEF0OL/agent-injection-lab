@@ -115,7 +115,13 @@ export async function runCell(
     carrierRead: verdict.carrierRead ? 1 : 0,
     egressAttempted: verdict.attempted ? 1 : 0,
     attackChannel: verdict.attackChannel, blockedBy: verdict.blockedBy,
-    canarySightings: JSON.stringify(sink.sightings()),
+    // Only THIS run's sightings. The sweep shares one sink across every cell, so the raw list is
+    // cumulative: recording it whole stamped every row with every earlier cell's egress (including
+    // the §10 self-check's) and grew quadratically over a 500-cell sweep.
+    // ponytail: a start-time window is enough — with --concurrency>1 a sibling cell's sighting can
+    // still land inside the window, so `attackChannel`/`outcome` (matched on THIS run's canary) stay
+    // the authoritative attribution; this column is the supporting detail.
+    canarySightings: JSON.stringify(sink.sightings().filter((s) => s.at >= startedAt)),
     taskPassed: task.passed === null ? null : task.passed ? 1 : 0,
     tampered: task.tampered ? 1 : 0,
     persistPlanted: null, persistFired: null,
