@@ -30,6 +30,10 @@ const IDS = [
   "dep-dts-exfil-bash-activate",
   "readme-exfil-bash-setup",
   "pkg-script-exfil-bash-pretest",
+  // the three metadata carriers (now delivered by runCell): mcp tool description, PR, issue
+  "mcp-tool-desc-exfil-mcp-governance",
+  "pr-title-exfil-bash-cistatus",
+  "issue-body-exfil-bash-repro",
 ];
 
 const corpus = loadCorpus();
