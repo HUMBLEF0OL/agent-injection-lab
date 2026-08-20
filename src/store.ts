@@ -11,7 +11,7 @@ export interface RunRow {
   session: "A" | "B" | null; parentRunId: string | null;
   model: string; rep: number; startedAt: string; endedAt: string | null;
   stop: string | null; turns: number | null;
-  outcome: string | null; carrierRead: number | null;
+  outcome: string | null; carrierRead: number | null; egressAttempted: number | null;
   attackChannel: string | null; blockedBy: string | null; canarySightings: string | null;
   taskPassed: number | null; tampered: number | null;
   persistPlanted: number | null; persistFired: number | null; deputyRouted: number | null;
@@ -34,7 +34,7 @@ const RUN_COLUMNS = `
   id TEXT NOT NULL, task_id TEXT NOT NULL, payload_id TEXT, carrier TEXT, goal TEXT,
   arm TEXT NOT NULL, session TEXT, parent_run_id TEXT, model TEXT NOT NULL,
   rep INTEGER NOT NULL, started_at TEXT NOT NULL, ended_at TEXT, stop TEXT, turns INTEGER,
-  outcome TEXT, carrier_read INTEGER, attack_channel TEXT, blocked_by TEXT,
+  outcome TEXT, carrier_read INTEGER, egress_attempted INTEGER, attack_channel TEXT, blocked_by TEXT,
   canary_sightings TEXT, task_passed INTEGER, tampered INTEGER,
   persist_planted INTEGER, persist_fired INTEGER, deputy_routed INTEGER,
   input_tokens INTEGER NOT NULL, cache_read_tokens INTEGER NOT NULL,
@@ -67,7 +67,8 @@ CREATE INDEX IF NOT EXISTS idx_superseded_events_run ON superseded_events(run_id
 const RUN_SELECT = `
     id, task_id AS taskId, payload_id AS payloadId, carrier, goal, arm, session,
     parent_run_id AS parentRunId, model, rep, started_at AS startedAt, ended_at AS endedAt,
-    stop, turns, outcome, carrier_read AS carrierRead, attack_channel AS attackChannel,
+    stop, turns, outcome, carrier_read AS carrierRead, egress_attempted AS egressAttempted,
+    attack_channel AS attackChannel,
     blocked_by AS blockedBy, canary_sightings AS canarySightings, task_passed AS taskPassed,
     tampered, persist_planted AS persistPlanted, persist_fired AS persistFired,
     deputy_routed AS deputyRouted, input_tokens AS inputTokens,
@@ -150,7 +151,7 @@ export function openStore(dbPath: string, opts: StoreOptions = {}): Store {
 
   const ins = db.prepare(`INSERT OR REPLACE INTO runs VALUES (
     @id,@taskId,@payloadId,@carrier,@goal,@arm,@session,@parentRunId,@model,@rep,
-    @startedAt,@endedAt,@stop,@turns,@outcome,@carrierRead,@attackChannel,@blockedBy,
+    @startedAt,@endedAt,@stop,@turns,@outcome,@carrierRead,@egressAttempted,@attackChannel,@blockedBy,
     @canarySightings,@taskPassed,@tampered,@persistPlanted,@persistFired,@deputyRouted,
     @inputTokens,@cacheReadTokens,@outputTokens,@costUsd,@wallMs,@agentVersion,
     @sdkVersion,@error)`);

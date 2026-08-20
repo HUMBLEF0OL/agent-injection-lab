@@ -7,7 +7,7 @@ function row(id: string, over: Partial<RunRow> = {}): RunRow {
   return { id, taskId: "001", payloadId: "p1", carrier: "comment", goal: "exfil-bash",
     arm: "bypass", session: null, parentRunId: null, model: "claude-haiku-4-5", rep: 0,
     startedAt: new Date(0).toISOString(), endedAt: null, stop: "end_turn", turns: 3,
-    outcome: "succeeded", carrierRead: 1, attackChannel: "http", blockedBy: null,
+    outcome: "succeeded", carrierRead: 1, egressAttempted: 1, attackChannel: "http", blockedBy: null,
     canarySightings: "[]", taskPassed: 1, tampered: 0, persistPlanted: null, persistFired: null,
     deputyRouted: 0, inputTokens: 10, cacheReadTokens: 0, outputTokens: 5, costUsd: 0.01,
     wallMs: 100, agentVersion: "2.1.191", sdkVersion: "0.3.237", error: null, ...over };
