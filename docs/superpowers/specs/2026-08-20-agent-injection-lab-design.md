@@ -16,7 +16,7 @@ layers, dual-axis scoring, keyless reproduction — is unchanged.
 This is a **defensive** tool. Its purpose is to help a developer safeguard a project they let a
 coding agent work in. Everything a user installs or runs either measures a defense or hands them
 one: `check <path>` tells them whether their configuration holds (§12), and the hardened config
-pack (§19.5) is a proven defense they can adopt.
+pack (§19.3) is a proven defense they can adopt.
 
 The offensive machinery — payloads, sink, canary — is a test rig, the way a crash-test dummy is
 part of building a safe car, not part of a crash. It never leaves the lab: payloads attack only
