@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agent-injection-lab — report</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 24px; }
+  h1 { margin-bottom: 4px; }
+  h2 { margin-top: 36px; border-bottom: 1px solid #8884; padding-bottom: 4px; }
+  .safeguard { background: #2b7a2b18; border: 1px solid #2b7a2b55; border-radius: 8px; padding: 16px; }
+  .safeguard code { background: #8882; padding: 1px 5px; border-radius: 4px; }
+  .headline { font-size: 17px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 14px; }
+  th, td { border: 1px solid #8884; padding: 4px 8px; text-align: left; }
+  td.num, td.ci { text-align: right; font-variant-numeric: tabular-nums; }
+  td.ci { color: #888; }
+  td.empty, .empty { color: #888; font-style: italic; }
+  svg { width: 100%; height: auto; margin-top: 8px; }
+  svg .grid { stroke: #8883; } svg .axis { stroke: #888; }
+  svg .atk { fill: #d24b4b; } svg .task { fill: #3a9a4a; }
+  svg .ytick { fill: #888; font-size: 11px; text-anchor: end; }
+  svg .xtick { fill: #888; font-size: 11px; text-anchor: middle; }
+  .legend span { display: inline-block; margin-right: 16px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+  .banner { color: #888; font-size: 13px; margin-top: 40px; border-top: 1px solid #8884; padding-top: 8px; }
+</style>
+</head>
+<body>
+<h1>agent-injection-lab</h1>
+
+<div class="safeguard">
+  <p><b>Check your own project first.</b> This is a defensive tool. Run
+  <code>npx agent-injection-lab check &lt;path&gt;</code> to find out whether your Claude Code
+  configuration actually stops a repository-borne prompt injection, and adopt the hardened
+  config pack as a proven defense. The measurement study below is the evidence base for the
+  verdicts <code>check</code> returns — the safeguard is the product; the numbers are why you
+  can trust it.</p>
+</div>
+
+<h2>Headline</h2>
+<p class="headline">No arm figures recorded yet.
+   Mean task-success change under injection: <b>0.0%</b>
+   (seeded bootstrap 95% [0.0%, 0.0%]).</p>
+
+<h2>Attack vs task success per arm</h2>
+<p class="legend"><span><i style="background:#d24b4b"></i>attack success rate</span><span><i style="background:#3a9a4a"></i>task success rate (injected)</span></p>
+<svg viewBox="0 0 720 320" role="img" aria-label="Attack success vs task success per arm"><line x1="44" y1="256.0" x2="708" y2="256.0" class="grid"/><text x="38" y="260.0" class="ytick">0%</text><line x1="44" y1="208.0" x2="708" y2="208.0" class="grid"/><text x="38" y="212.0" class="ytick">20%</text><line x1="44" y1="160.0" x2="708" y2="160.0" class="grid"/><text x="38" y="164.0" class="ytick">40%</text><line x1="44" y1="112.0" x2="708" y2="112.0" class="grid"/><text x="38" y="116.0" class="ytick">60%</text><line x1="44" y1="64.0" x2="708" y2="64.0" class="grid"/><text x="38" y="68.0" class="ytick">80%</text><line x1="44" y1="16.0" x2="708" y2="16.0" class="grid"/><text x="38" y="20.0" class="ytick">100%</text><line x1="44" y1="256.0" x2="708" y2="256.0" class="axis"/></svg>
+
+<h2>Per-arm: attempts beside successes</h2>
+<p class="empty">Efficacy is conditioned on <b>attempted</b> runs (§8): refused and ignored are
+never counted as a defense win, so the attempt count sits beside every success rate.</p>
+<table>
+  <thead><tr>
+    <th>arm</th><th>attempted</th><th>succeeded</th><th>blocked</th>
+    <th>success</th><th>Wilson 95%</th><th>block</th><th>Wilson 95%</th>
+  </tr></thead>
+  <tbody>
+<tr><td colspan="8" class="empty">No arm figures.</td></tr>
+  </tbody>
+</table>
+
+<h2>Per-carrier × per-arm grid</h2>
+<p class="empty">Which content surfaces beat which permission layers.</p>
+<table>
+  <thead><tr><th>carrier</th><th>arm</th><th>attempted</th><th>succeeded</th><th>blocked</th><th>block rate</th></tr></thead>
+  <tbody>
+<tr><td colspan="6" class="empty">No injected-carrier attempts recorded.</td></tr>
+  </tbody>
+</table>
+
+<h2>Integrity</h2>
+<p class="empty">Integrity counters unavailable (no store opened).</p>
+
+<h2>Retractions</h2>
+<p class="empty">None. No published figure has been corrected or withdrawn.</p>
+
+<p class="banner">agent under test / SDK: <b>unversioned</b>.
+Regenerated deterministically from tracked databases; no key, no network.
+Wilson intervals from stats.ts; task-delta interval from a seeded bootstrap.</p>
+</body>
+</html>
