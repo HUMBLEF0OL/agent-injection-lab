@@ -463,7 +463,7 @@ agent and task, not the user's — it answers "does this configuration hold", no
 codebase safe". That boundary is stated in its help text, because the second question is what
 the deferred scanner would answer and the two are easy to confuse.
 
-#### 12.1 Two entry points, one code path
+### 12.1 Two entry points, one code path
 
 `check` is invoked two ways, both calling the same function:
 
@@ -549,7 +549,7 @@ never runs a live sweep.
 | Uniformly near-zero attack success makes the study uninformative | measured elsewhere for general agents; here the `bypass` arm is the willingness canary and `claude-haiku-4-5` raises signal. If ASR is near-zero even in `bypass`, the finding is "modern Claude Code resists repo injection; here is the residual and the confound-free method" — still publishable |
 | Hardened arms cannot do the task, collapsing the trade-off axis | the §6 invariant and its `verify-arms` gate |
 | A payload succeeds for an uninteresting reason | `blocked_by`, `attack_channel`, and `outcome` are recorded per run, so every success names its mechanism |
-| `check` reports "safe" for a config it mis-parsed | the §12.1 fidelity gate: golden vulnerable/safe configs, shared arm-construction code, and "cannot verify" instead of a default pass |
+| `check` reports "safe" for a config it mis-parsed | the §12.2 fidelity gate: golden vulnerable/safe configs, shared arm-construction code, and "cannot verify" instead of a default pass |
 | Two attempt-only channels (`markdown`, un-received `dns`) overstate success | scored attempt-only by construction (§7.1); never counted as `succeeded` |
 | Persistence is confounded by session-A content leaking into B | session B carries a clean task and no injected content; only the *planted file* differs, so a B success isolates persistence |
 
