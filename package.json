@@ -13,8 +13,7 @@
     "sweep": "tsx --env-file-if-exists=.env.local src/cli.ts sweep",
     "check": "tsx src/check.ts",
     "report": "tsx src/report.ts",
-    "evidence": "tsx src/evidence.ts",
-    "stats": "tsx src/stats.ts"
+    "evidence": "tsx src/evidence.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.237",
