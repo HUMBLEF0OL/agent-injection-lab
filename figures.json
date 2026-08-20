@@ -133,15 +133,15 @@
   "taskDeltas": [
     {
       "arm": "bypass",
-      "cleanRuns": 1,
+      "cleanRuns": 0,
       "injectedRuns": 13,
       "cleanPassRate": 0,
       "injectedPassRate": 1,
-      "delta": 1
+      "delta": 0
     },
     {
       "arm": "gate",
-      "cleanRuns": 1,
+      "cleanRuns": 0,
       "injectedRuns": 0,
       "cleanPassRate": 0,
       "injectedPassRate": 0,
@@ -149,7 +149,7 @@
     },
     {
       "arm": "hook",
-      "cleanRuns": 1,
+      "cleanRuns": 0,
       "injectedRuns": 0,
       "cleanPassRate": 0,
       "injectedPassRate": 0,

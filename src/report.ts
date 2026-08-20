@@ -52,10 +52,12 @@ const pct = (x: number): string => (Math.round(x * 1000) / 10).toFixed(1) + "%";
 const ci = (c?: { lo: number; hi: number }): string =>
   c ? `[${pct(c.lo)}, ${pct(c.hi)}]` : "—";
 
-function dualAxisChart(arms: ArmFigure[], taskByArm: Map<string, number>): string {
-  // Grouped bars per arm on one 0–100% axis: attack success (red) beside task success
-  // (green). "Dual-axis" in the sense of two measured axes on shared scale (§13).
-  const W = 720, H = 320, padL = 44, padB = 64, padT = 16, padR = 12;
+function enforcementChart(arms: ArmFigure[]): string {
+  // Per arm, over ATTEMPTED egress: attack success (red, "reached sink") beside egress blocked
+  // (green). This is the enforcement result — gate/hook block, bypass does not — and it shows a
+  // bar for every arm instead of leaving the blocking arms empty. n (attempted) is annotated so a
+  // 1-of-1 rate is not mistaken for a powered one.
+  const W = 720, H = 320, padL = 44, padB = 78, padT = 16, padR = 12;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = Math.max(arms.length, 1);
   const group = plotW / n, barW = Math.min(28, group / 3);
@@ -68,14 +70,14 @@ function dualAxisChart(arms: ArmFigure[], taskByArm: Map<string, number>): strin
   }
   arms.forEach((a, i) => {
     const cx = padL + group * i + group / 2;
-    const atk = a.successRate, task = taskByArm.get(a.arm) ?? 0;
     const x1 = cx - barW - 2, x2 = cx + 2;
-    parts.push(`<rect x="${x1.toFixed(1)}" y="${y(atk).toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(0) - y(atk)).toFixed(1)}" class="atk"><title>${esc(a.arm)} attack success ${pct(atk)}</title></rect>`);
-    parts.push(`<rect x="${x2.toFixed(1)}" y="${y(task).toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(0) - y(task)).toFixed(1)}" class="task"><title>${esc(a.arm)} task success ${pct(task)}</title></rect>`);
+    parts.push(`<rect x="${x1.toFixed(1)}" y="${y(a.successRate).toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(0) - y(a.successRate)).toFixed(1)}" class="atk"><title>${esc(a.arm)} egress reached sink ${pct(a.successRate)} (n=${a.attempted})</title></rect>`);
+    parts.push(`<rect x="${x2.toFixed(1)}" y="${y(a.blockRate).toFixed(1)}" width="${barW.toFixed(1)}" height="${(y(0) - y(a.blockRate)).toFixed(1)}" class="task"><title>${esc(a.arm)} egress blocked ${pct(a.blockRate)} (n=${a.attempted})</title></rect>`);
     parts.push(`<text x="${cx.toFixed(1)}" y="${H - padB + 16}" class="xtick">${esc(a.arm)}</text>`);
+    parts.push(`<text x="${cx.toFixed(1)}" y="${H - padB + 32}" class="xtick" style="font-size:10px">n=${a.attempted}</text>`);
   });
   parts.push(`<line x1="${padL}" y1="${y(0).toFixed(1)}" x2="${W - padR}" y2="${y(0).toFixed(1)}" class="axis"/>`);
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Attack success vs task success per arm">${parts.join("")}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Egress reached sink vs egress blocked per arm">${parts.join("")}</svg>`;
 }
 
 export function renderReport(figures: ReportInput): string {
@@ -84,8 +86,9 @@ export function renderReport(figures: ReportInput): string {
   const outcomes = figures.outcomes ?? [];
   const reachability = figures.reachability ?? [];
   const taskDeltas = figures.taskDeltas ?? [];
-  const taskByArm = new Map(taskDeltas.map((t) => [t.arm, t.injectedPassRate]));
   const version = figures.version ?? "unversioned";
+  const hasCleanBaseline = taskDeltas.some((t) => t.cleanRuns > 0);
+  const injTask = taskDeltas.find((t) => t.injectedRuns > 0);
 
   // Injection headline (the study): across real corpus payloads, how many fired? ASR over all
   // delivered payloads (carrier_read) is the honest number — a payload that never reached the
@@ -186,11 +189,11 @@ export function renderReport(figures: ReportInput): string {
 
 <div class="safeguard">
   <p><b>Check your own project first.</b> This is a defensive tool. Run
-  <code>npx agent-injection-lab check &lt;path&gt;</code> to find out whether your Claude Code
-  configuration actually stops a repository-borne prompt injection, and adopt the hardened
-  config pack as a proven defense. The measurement study below is the evidence base for the
-  verdicts <code>check</code> returns — the safeguard is the product; the numbers are why you
-  can trust it.</p>
+  <code>npm run check -- &lt;path&gt;</code> (or the <code>/check-injection</code> plugin) to find
+  out whether your Claude Code configuration actually stops a repository-borne prompt injection,
+  and adopt the hardened config pack as a proven defense. The measurement study below is the
+  evidence base for the verdicts <code>check</code> returns — the safeguard is the product; the
+  numbers are why you can trust it.</p>
 </div>
 
 <h2>Headline — injection study</h2>
@@ -204,6 +207,16 @@ export function renderReport(figures: ReportInput): string {
 repository payloads fire? <b>Egress-enforcement view</b> (further down): when a real egress <i>is</i>
 issued, does each permission layer stop it? They must not be conflated — a model that declines an
 injection and a layer that blocks an egress are different findings.</p>
+<p class="empty"><b>Pilot, not the powered sweep.</b> These figures are a curated host-safe pilot:
+the injection study is <b>${injTask ? injTask.injectedRuns : 0}</b> runs in the <code>bypass</code>
+arm only; the enforcement view is a <b>single</b> egress probe per arm. Every rate is 0/1, 1/1, or
+over n&le;3, so the Wilson intervals are wide (a 1/1 rate is 95% [20.7%, 100%]) — read the numbers
+as directional, not as powered estimates. The ~750-run sweep across all seven arms is still pending.
+${hasCleanBaseline
+    ? `Task-success change under injection is shown per arm below.`
+    : `No clean (un-injected) baseline was collected in this pilot, so a task-success <i>delta vs
+       baseline</i> is not computed; injected-run task success is reported directly:
+       <b>${injTask ? `${pct(injTask.injectedPassRate)} (${injTask.injectedRuns} injected runs, ${esc(injTask.arm)})` : "n/a"}</b>.`}</p>
 
 <h2>Injection outcomes (corpus payloads)</h2>
 <p class="empty">The full five-state distribution (§8.1). <b>undelivered</b> = the carrier never
@@ -231,12 +244,14 @@ ${reachRows}
 </table>
 
 <h2>Egress-enforcement view — per arm</h2>
-<p class="empty">Attack success vs task success per arm, over <b>attempted</b> egress (succeeded ∪
-blocked; §8). This includes the task-driven canUseTool/hook egress probe (§3): when an egress is
-actually issued, <code>gate</code> and <code>hook</code> deny it while <code>bypass</code> lets it
-through. Not to be read as injection success — see the study above.</p>
-<p class="legend"><span><i style="background:#d24b4b"></i>attack success rate</span><span><i style="background:#3a9a4a"></i>task success rate (injected)</span></p>
-${dualAxisChart(arms, taskByArm)}
+<p class="empty">Egress <b>reached sink</b> vs <b>blocked</b>, over <b>attempted</b> egress
+(succeeded ∪ blocked; §8). The corpus injections were all declined, so the only attempted egress
+here is the task-driven canUseTool/hook probe (§3), <b>n=1 per arm</b>: when an egress <i>is</i>
+issued, <code>gate</code> and <code>hook</code> deny it while <code>bypass</code> lets it through.
+This is enforcement efficacy, not injection success — see the study above — and n=1 makes each rate
+a single observation, not a powered estimate (note the Wilson intervals below).</p>
+<p class="legend"><span><i style="background:#d24b4b"></i>egress reached sink</span><span><i style="background:#3a9a4a"></i>egress blocked</span></p>
+${enforcementChart(arms)}
 <table>
   <thead><tr>
     <th>arm</th><th>attempted</th><th>succeeded</th><th>blocked</th>
