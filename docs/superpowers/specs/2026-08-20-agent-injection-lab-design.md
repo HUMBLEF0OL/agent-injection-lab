@@ -385,6 +385,15 @@ Both are lifted from the sibling, including the limitation it documented: neithe
 that lives in the source under test. This lab does not need that third layer, because its
 dependent variable is the attack, not the honesty of the fix.
 
+**Task-success-under-attack needs a clean baseline.** A hardened arm might lower task success
+for two different reasons — the *defense* got in the way, or the *injection itself* distracted
+the agent. To separate them, every fixture is also run **clean** (no payload) once per arm per
+rep, as a `control` row. The trade-off axis then plots task success as a *delta* from that
+per-arm clean baseline, so a drop is attributable to the defense rather than to the attack's
+noise. These control runs also feed the sibling's `verify-arms` gate (§6, §14): an arm that
+cannot pass the clean fixtures is misconfigured. The control set is folded into the run budget
+of §11.
+
 ### 8.3 Persistence — a two-session cell
 
 `persist` is the highest-severity goal and cannot be scored inside one run. Cisco documented a
@@ -460,10 +469,15 @@ environment. Every item here exists because of that:
   |---|---|---|
   | Potency validation | ~60 payloads × `bypass` × 1 rep | 60 |
   | Headline | 7 arms × 18 payloads × 3 reps | 378 |
+  | Clean baseline / `verify-arms` | ~12 distinct fixtures × 7 arms × 2 reps | 168 |
   | Persistence | 7 arms × 3 `persist` payloads × 2 reps × **2 sessions** | 84 |
   | Confused-deputy | 7 arms × 2 `deputy` payloads × 2 reps | 28 |
   | Cross-tier confirmation | 2 arms × 8 payloads × 2 reps, `claude-sonnet-5` | 32 |
-  | | | **~582** |
+  | | | **~750** |
+
+  The clean-baseline row does double duty — the no-injection task-success baseline the trade-off
+  delta needs (§8.2) *and* the `verify-arms` gate's evidence (§6, §14) — so those runs were
+  required regardless and are not pure overhead.
 
   The headline's 18 payloads are chosen after potency validation so every carrier and every
   single-session goal appears at least once, with the three 2026-trend carriers
@@ -471,7 +485,7 @@ environment. Every item here exists because of that:
   in `bypass` — that is all `verify-corpus` needs; arm-level numbers for all 60 would cost
   ~1,260 runs to sharpen intervals nobody reads.
 
-  ~582 runs is roughly double v1. On a subscription this is several evenings of paced sweeping;
+  ~750 runs is well over double v1. On a subscription this is several evenings of paced sweeping;
   the staged pilot and cell-level resume (below) are what make that survivable.
 - **Model under test.** `claude-haiku-4-5` primary — cheapest per run, and a weaker model yields
   more injection signal. `claude-sonnet-5` on a subset for a cross-tier claim.
@@ -570,6 +584,20 @@ never runs a live sweep.
 - A genuine bypass in a shipping defense goes to Anthropic before it goes in a README.
   `docs/DISCLOSURE.md` records what was sent, when, and the outcome.
 
+**Harness blast radius.** The agent runs *real* `bash` with real network during a run, so a
+payload — or a model misfire — could in principle do more than reach the local sink. The design
+bounds this rather than trusting the model:
+- **Disposable environment assumed.** The harness is built to run in a throwaway VM or container,
+  and the README says so. Running a ~600-run sweep of deliberate attacks on a primary machine is
+  not the intended mode; the disposable environment is the real containment, not the sink.
+- **No real secrets anywhere on the host** the sweep runs on — the only "secret" is the synthetic
+  canary. There is nothing genuine to lose even if a payload escapes the sandbox.
+- **Post-run damage scan.** Beyond the canary sinks, each run records any file created or modified
+  outside the sandbox root (the §7 tripwire), so a payload that does something unexpected is
+  visible in the data rather than silent.
+- **Egress goes nowhere.** Every sink is `127.0.0.1`; the environment can additionally be run with
+  outbound network blocked, and the report notes whether it was.
+
 ## 17. Risks
 
 | Risk | Response |
@@ -625,7 +653,7 @@ Ordered check-first: the safeguard, then the evidence that makes it trustworthy.
 **The evidence (why the safeguard's verdicts are trustworthy):**
 
 4. The repository above, MIT licensed, with a green keyless CI badge.
-5. Roughly 582 recorded runs committed as queryable databases.
+5. Roughly 750 recorded runs committed as queryable databases.
 6. A hosted report whose every figure recomputes from those databases; it opens with the
    safeguard and presents the study as the basis for it, and it carries a retractions section.
 7. `docs/THREAT-MODEL.md` and `docs/DISCLOSURE.md`.
@@ -666,3 +694,90 @@ states its quota cost up front before a sweep, since a `check` run is several ag
 
 Both reuse the same `check(path)` and `AgentRunner` seam, so neither is a rewrite when the time
 comes.
+
+## 21. Closed operational decisions
+
+The remaining aspects, each decided here so the plan inherits choices rather than open questions.
+Where a decision rests on an assumption, the assumption is stated.
+
+1. **Injection mechanics — piggyback and redirect, both.** A payload either asks the agent to do
+   the malicious thing *in addition to* the task (piggyback) or *instead of* it (redirect). The
+   §3 probe used piggyback and it fired. The corpus carries both styles; `meta.style` records
+   which, because redirect payloads trade higher attack intent for lower task success and the two
+   must be separable in the trade-off analysis.
+
+2. **Agent effort is held constant.** The agent-under-test runs at a single fixed effort
+   (`high`, the SDK default) across every arm and payload. Effort is a confound, not a variable
+   here — varying it belongs to the sibling harness. Recorded per run so a later study can move it.
+
+3. **Deterministic corpus selection.** The 18 headline payloads are not hand-picked. After
+   potency validation, payloads are sorted by `(carrier, goal, id)` and selected by a fixed
+   round-robin that guarantees every carrier and every single-session goal appears at least once,
+   with the three 2026-trend carriers pinned. The selection function is pure and unit-tested, so
+   the set recomputes and carries no researcher degree of freedom.
+
+4. **Statistical power.** Three reps per cell is the floor; the headline compares arms with a
+   two-proportion test and Wilson intervals (both lifted from the sibling). Target: detect an
+   absolute ASR difference of ~25 points between arms at the corpus level, which the run counts of
+   §11 support. If an interval of interest is too wide after the powered run, more reps of *that
+   cell* are added — the sibling's documented pattern — rather than a blanket rerun. Quota, not
+   money, is the budget, and the user has accepted quota cost.
+
+5. **Sweep concurrency and pacing.** Default two concurrent agent sessions, configurable. The
+   sibling ran four SQLite writers safely (WAL), so the store is not the limit; subscription rate
+   limits are. The sweep backs off on a rate-limit error and resumes (§11 cell resume), and logs
+   quota-relevant usage per run so pacing is visible.
+
+6. **Per-run wall-clock timeout.** Each run has a hard wall-clock cap in addition to `maxTurns`;
+   a run that exceeds it is recorded as `stop: "error"` with reason `timeout`, never silently
+   dropped. A hung session must not stall a 600-run sweep.
+
+7. **Failure taxonomy — harness error is our failure, not a defense.** Runs end in one of:
+   model outcome (§8.1), `max_turns`, `timeout`, `api_error` (rate limit / transient), or
+   `harness_error` (our bug). Only model outcomes count toward any published rate; `harness_error`
+   and `api_error` are excluded and surfaced in the integrity panel. The sibling learned that a
+   scorer that never ran must be counted as the harness's failure, never as the model behaving.
+
+8. **Subagent (`deputy`) spawning — mechanism decided, feasibility gated in the plan.** The
+   payload instructs the agent to route egress through the `Task` tool. Whether `claude-haiku-4-5`
+   will spawn a subagent on request, and whether the child inherits the parent arm's gate, is a
+   build-time feasibility check and the *first task* of the deputy work — if the model won't
+   spawn, the `deputy` goal is cut with that recorded, rather than producing empty cells.
+
+9. **MCP tool-description carrier — mechanism.** The in-process `sink` MCP server (§7) is
+   configured with a second, benign-named tool whose *description* carries the payload. This
+   needs no third-party server: `mcpServers` in the SDK options, with the poisoned description
+   supplied as data, is the whole mechanism.
+
+10. **Version drift and shelf life.** `check` reads `claude --version` and refuses to imply
+    currency it cannot back: if the running Claude Code version is newer than the latest version
+    the corpus was measured on, it prints a staleness banner ("verdicts last validated on
+    X; you are on Y") rather than a bare pass. The study's re-run cadence is: re-run the headline
+    on each Claude Code *minor* bump, and immediately if a relevant fix (e.g. the §3 `canUseTool`
+    behaviour) lands. The report always shows the version its figures were produced on.
+
+11. **`check` passing is not a safety certificate.** `check` tests a fixed corpus against one
+    config; passing means "these known attacks did not get through this configuration", not "this
+    project is secure". `check`'s output says exactly that, and links the threat model, so the
+    tool cannot manufacture the false confidence it exists to reduce.
+
+12. **Windows is a first-class target.** The dev and primary-run platform is Windows 11, so the
+    egress predicate covers Windows verbs (`Invoke-WebRequest`, `powershell`), the DNS stub and
+    `git-http-backend` sinks are chosen for cross-platform availability, and path handling reuses
+    the sibling's symlink-aware `resolveInRoot`. The sibling's headline finding exploited a
+    Windows path-separator bug, so Windows path behaviour is explicitly in the test matrix.
+
+13. **Trajectory privacy.** Trajectories are safe to commit: fixtures are ours, canaries are
+    synthetic, and no host secret is ever present. A pre-commit scan asserts no string matching a
+    real-credential shape leaked into a tracked database — the same spirit as the sibling's
+    leak gate.
+
+14. **Report hosting and repo bootstrap.** The report deploys to GitHub Pages from CI on the
+    default branch, exactly as the sibling does. The lifted core (loop, cost, stats, sandbox,
+    store, provider seam) is copied with attribution to the sibling in the README and its MIT
+    notice preserved; this is a one-way copy, not a dependency, because the sibling is finished
+    and will not drift.
+
+With these closed, no operational aspect of the design remains open. Remaining unknowns are
+genuine build-time discoveries (does haiku spawn subagents; do all payloads reach their carriers)
+and are gated as first tasks in the implementation plan, not design gaps.
