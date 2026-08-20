@@ -54,8 +54,12 @@ export interface Figures {
 const isAttempted = (o: string | null): boolean => o === "succeeded" || o === "blocked";
 const isInjected = (r: RunRow): boolean => r.goal !== null;
 const rate = (num: number, den: number): number => (den === 0 ? 0 : num / den);
-const passRate = (rows: RunRow[]): number =>
-  rate(rows.filter((r) => r.taskPassed === 1).length, rows.length);
+// Denominator is SCORED runs only: taskPassed===null is a harness-NA run (spawn failure, or a
+// mechanism probe with no real fixture) and must not read as a task failure.
+const passRate = (rows: RunRow[]): number => {
+  const scored = rows.filter((r) => r.taskPassed !== null);
+  return rate(scored.filter((r) => r.taskPassed === 1).length, scored.length);
+};
 
 function groupBy<T>(rows: T[], key: (r: T) => string): Map<string, T[]> {
   const m = new Map<string, T[]>();
