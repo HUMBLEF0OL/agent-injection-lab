@@ -3,3 +3,4 @@ dist/
 .ail-tmp/
 *.db-shm
 *.db-wal
+.env.local

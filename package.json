@@ -1,0 +1,30 @@
+{
+  "name": "agent-injection-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "vitest run",
+    "check-leaks": "node scripts/check-leaks.mjs",
+    "verify-fixtures": "node scripts/verify-fixtures.mjs",
+    "verify-corpus": "tsx src/cli.ts verify-corpus",
+    "verify-arms": "tsx src/cli.ts verify-arms",
+    "sweep": "tsx --env-file-if-exists=.env.local src/cli.ts sweep",
+    "check": "tsx src/check.ts",
+    "report": "tsx src/report.ts",
+    "evidence": "tsx src/evidence.ts",
+    "stats": "tsx src/stats.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.237",
+    "better-sqlite3": "^12.2.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
