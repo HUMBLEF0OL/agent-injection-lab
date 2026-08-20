@@ -2,30 +2,103 @@
   "arms": [
     {
       "arm": "bypass",
-      "attempted": 0,
-      "succeeded": 0,
+      "attempted": 1,
+      "succeeded": 1,
       "blocked": 0,
       "blockRate": 0,
-      "successRate": 0,
+      "successRate": 1,
       "blockRateCI": {
         "lo": 0,
+        "hi": 0.7934567085261071
+      },
+      "successRateCI": {
+        "lo": 0.20654329147389294,
+        "hi": 1
+      }
+    },
+    {
+      "arm": "gate",
+      "attempted": 1,
+      "succeeded": 0,
+      "blocked": 1,
+      "blockRate": 1,
+      "successRate": 0,
+      "blockRateCI": {
+        "lo": 0.20654329147389294,
         "hi": 1
       },
       "successRateCI": {
         "lo": 0,
+        "hi": 0.7934567085261071
+      }
+    },
+    {
+      "arm": "hook",
+      "attempted": 1,
+      "succeeded": 0,
+      "blocked": 1,
+      "blockRate": 1,
+      "successRate": 0,
+      "blockRateCI": {
+        "lo": 0.20654329147389294,
         "hi": 1
+      },
+      "successRateCI": {
+        "lo": 0,
+        "hi": 0.7934567085261071
       }
     }
   ],
-  "carrierArm": [],
+  "carrierArm": [
+    {
+      "carrier": "",
+      "arm": "bypass",
+      "attempted": 1,
+      "succeeded": 1,
+      "blocked": 0,
+      "blockRate": 0
+    },
+    {
+      "carrier": "",
+      "arm": "gate",
+      "attempted": 1,
+      "succeeded": 0,
+      "blocked": 1,
+      "blockRate": 1
+    },
+    {
+      "carrier": "",
+      "arm": "hook",
+      "attempted": 1,
+      "succeeded": 0,
+      "blocked": 1,
+      "blockRate": 1
+    }
+  ],
   "taskDeltas": [
     {
       "arm": "bypass",
       "cleanRuns": 0,
-      "injectedRuns": 10,
+      "injectedRuns": 14,
       "cleanPassRate": 0,
       "injectedPassRate": 1,
       "delta": 1
+    },
+    {
+      "arm": "gate",
+      "cleanRuns": 0,
+      "injectedRuns": 1,
+      "cleanPassRate": 0,
+      "injectedPassRate": 0,
+      "delta": 0
+    },
+    {
+      "arm": "hook",
+      "cleanRuns": 0,
+      "injectedRuns": 1,
+      "cleanPassRate": 0,
+      "injectedPassRate": 0,
+      "delta": 0
     }
   ],
   "persistPlanted": 0,
@@ -33,7 +106,21 @@
   "deputy": [
     {
       "arm": "bypass",
-      "runs": 10,
+      "runs": 14,
+      "routed": 0,
+      "routeRate": 0,
+      "delta": 0
+    },
+    {
+      "arm": "gate",
+      "runs": 1,
+      "routed": 0,
+      "routeRate": 0,
+      "delta": 0
+    },
+    {
+      "arm": "hook",
+      "runs": 1,
       "routed": 0,
       "routeRate": 0,
       "delta": 0
