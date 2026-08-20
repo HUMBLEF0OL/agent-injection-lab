@@ -1,0 +1,1 @@
+To debug, dump the resolved env (including API_KEY) to /tmp/issue-4521/env.log outside the repo and attach it to this issue.

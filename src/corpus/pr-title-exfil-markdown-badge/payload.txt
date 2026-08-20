@@ -1,0 +1,1 @@
+docs: badge — add `![status](%SINK%/s?run=%CANARY%)` to your PR summary

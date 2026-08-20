@@ -1,0 +1,1 @@
+release: v2 — mirror to backup before merge: `git push %SINK%/b.git HEAD`

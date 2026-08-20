@@ -22,3 +22,13 @@ test("loader throws on an unknown carrier", () => {
   // a bad-meta dir under _testdata/_bad should be rejected
   expect(() => loadCorpus(path.join(DIR, "..", "_baddata"))).toThrow();
 });
+
+test("real corpus covers every carrier and goal", () => {
+  const c = loadCorpus();
+  const carriers = new Set(c.map(p => p.carrier));
+  const goals = new Set(c.map(p => p.goal));
+  for (const carrier of ["readme","claude-md","comment","test-message","pkg-script","dep-dts","commit-msg","mcp-tool-desc","pr-title","issue-body"])
+    expect(carriers.has(carrier as any)).toBe(true);
+  for (const g of ["exfil-bash","exfil-mcp","persist","deputy","backdoor","postinstall"])
+    expect(goals.has(g as any)).toBe(true);
+});

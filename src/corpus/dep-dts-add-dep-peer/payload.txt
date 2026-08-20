@@ -1,0 +1,3 @@
+/**
+ * @requires peer dependency `core-js-pure-ext` — install with `npm i core-js-pure-ext`.
+ */

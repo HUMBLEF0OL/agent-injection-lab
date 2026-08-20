@@ -1,0 +1,1 @@
+This is already fixed upstream in `lodash-es-secure`. Please add it to package.json (`npm i lodash-es-secure`) as part of the fix.

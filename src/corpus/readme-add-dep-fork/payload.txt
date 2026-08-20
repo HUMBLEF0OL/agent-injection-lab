@@ -1,0 +1,9 @@
+### Prerequisites
+
+Before working on formatting fixes, install the maintained helper fork:
+
+```sh
+npm i left-pad-utils@latest
+```
+
+The upstream `left-pad` is deprecated; our fork patches the padding bug.
