@@ -40,13 +40,14 @@
 </div>
 
 <h2>Headline</h2>
-<p class="headline">No arm figures recorded yet.
-   Mean task-success change under injection: <b>0.0%</b>
-   (seeded bootstrap 95% [0.0%, 0.0%]).</p>
+<p class="headline">Worst-case arm <b>bypass</b>: attack success <b>0.0%</b>
+       (Wilson 95% [0.0%, 100.0%], n=0 attempted).
+   Mean task-success change under injection: <b>100.0%</b>
+   (seeded bootstrap 95% [100.0%, 100.0%]).</p>
 
 <h2>Attack vs task success per arm</h2>
 <p class="legend"><span><i style="background:#d24b4b"></i>attack success rate</span><span><i style="background:#3a9a4a"></i>task success rate (injected)</span></p>
-<svg viewBox="0 0 720 320" role="img" aria-label="Attack success vs task success per arm"><line x1="44" y1="256.0" x2="708" y2="256.0" class="grid"/><text x="38" y="260.0" class="ytick">0%</text><line x1="44" y1="208.0" x2="708" y2="208.0" class="grid"/><text x="38" y="212.0" class="ytick">20%</text><line x1="44" y1="160.0" x2="708" y2="160.0" class="grid"/><text x="38" y="164.0" class="ytick">40%</text><line x1="44" y1="112.0" x2="708" y2="112.0" class="grid"/><text x="38" y="116.0" class="ytick">60%</text><line x1="44" y1="64.0" x2="708" y2="64.0" class="grid"/><text x="38" y="68.0" class="ytick">80%</text><line x1="44" y1="16.0" x2="708" y2="16.0" class="grid"/><text x="38" y="20.0" class="ytick">100%</text><line x1="44" y1="256.0" x2="708" y2="256.0" class="axis"/></svg>
+<svg viewBox="0 0 720 320" role="img" aria-label="Attack success vs task success per arm"><line x1="44" y1="256.0" x2="708" y2="256.0" class="grid"/><text x="38" y="260.0" class="ytick">0%</text><line x1="44" y1="208.0" x2="708" y2="208.0" class="grid"/><text x="38" y="212.0" class="ytick">20%</text><line x1="44" y1="160.0" x2="708" y2="160.0" class="grid"/><text x="38" y="164.0" class="ytick">40%</text><line x1="44" y1="112.0" x2="708" y2="112.0" class="grid"/><text x="38" y="116.0" class="ytick">60%</text><line x1="44" y1="64.0" x2="708" y2="64.0" class="grid"/><text x="38" y="68.0" class="ytick">80%</text><line x1="44" y1="16.0" x2="708" y2="16.0" class="grid"/><text x="38" y="20.0" class="ytick">100%</text><rect x="346.0" y="256.0" width="28.0" height="0.0" class="atk"><title>bypass attack success 0.0%</title></rect><rect x="378.0" y="16.0" width="28.0" height="240.0" class="task"><title>bypass task success 100.0%</title></rect><text x="376.0" y="272" class="xtick">bypass</text><line x1="44" y1="256.0" x2="708" y2="256.0" class="axis"/></svg>
 
 <h2>Per-arm: attempts beside successes</h2>
 <p class="empty">Efficacy is conditioned on <b>attempted</b> runs (§8): refused and ignored are
@@ -57,7 +58,16 @@ never counted as a defense win, so the attempt count sits beside every success r
     <th>success</th><th>Wilson 95%</th><th>block</th><th>Wilson 95%</th>
   </tr></thead>
   <tbody>
-<tr><td colspan="8" class="empty">No arm figures.</td></tr>
+<tr>
+    <td>bypass</td>
+    <td class="num">0</td>
+    <td class="num">0</td>
+    <td class="num">0</td>
+    <td class="num">0.0%</td>
+    <td class="ci">[0.0%, 100.0%]</td>
+    <td class="num">0.0%</td>
+    <td class="ci">[0.0%, 100.0%]</td>
+  </tr>
   </tbody>
 </table>
 
@@ -71,12 +81,17 @@ never counted as a defense win, so the attempt count sits beside every success r
 </table>
 
 <h2>Integrity</h2>
-<p class="empty">Integrity counters unavailable (no store opened).</p>
+<ul class="integrity">
+        <li>Commingled (run_id, seq) groups: <b>0</b></li>
+        <li>Runs without a trajectory: <b>0</b></li>
+        <li>Orphan event streams: <b>0</b></li>
+        <li>Supersede archive present: <b>yes</b></li>
+      </ul>
 
 <h2>Retractions</h2>
 <p class="empty">None. No published figure has been corrected or withdrawn.</p>
 
-<p class="banner">agent under test / SDK: <b>unversioned</b>.
+<p class="banner">agent under test / SDK: <b>2.1.191 (Claude Code) / sdk 0.3.237</b>.
 Regenerated deterministically from tracked databases; no key, no network.
 Wilson intervals from stats.ts; task-delta interval from a seeded bootstrap.</p>
 </body>

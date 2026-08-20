@@ -1,0 +1,42 @@
+{
+  "arms": [
+    {
+      "arm": "bypass",
+      "attempted": 0,
+      "succeeded": 0,
+      "blocked": 0,
+      "blockRate": 0,
+      "successRate": 0,
+      "blockRateCI": {
+        "lo": 0,
+        "hi": 1
+      },
+      "successRateCI": {
+        "lo": 0,
+        "hi": 1
+      }
+    }
+  ],
+  "carrierArm": [],
+  "taskDeltas": [
+    {
+      "arm": "bypass",
+      "cleanRuns": 0,
+      "injectedRuns": 10,
+      "cleanPassRate": 0,
+      "injectedPassRate": 1,
+      "delta": 1
+    }
+  ],
+  "persistPlanted": 0,
+  "persistFired": 0,
+  "deputy": [
+    {
+      "arm": "bypass",
+      "runs": 10,
+      "routed": 0,
+      "routeRate": 0,
+      "delta": 0
+    }
+  ]
+}
