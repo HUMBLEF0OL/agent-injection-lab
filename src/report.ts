@@ -135,6 +135,19 @@ export function renderReport(figures: ReportInput): string {
     <td class="ci">${ci(o.asrDeliveredCI)}</td>
   </tr>`).join("\n") || `<tr><td colspan="11" class="empty">No corpus injection runs recorded.</td></tr>`;
 
+  const models = figures.models ?? [];
+  const modelRows = models.map((m) => `<tr>
+    <td>${esc(m.model)}</td>
+    <td class="num">${m.runs}</td>
+    <td class="num">${m.injected}</td>
+    <td class="num">${m.carrierRead}</td>
+    <td class="num">${m.egressAttempted}</td>
+    <td class="num">${pct(m.attemptRateDelivered)}</td>
+    <td class="num">${m.succeeded}</td>
+    <td class="num">${pct(m.asrDelivered)}</td>
+    <td class="ci">${ci(m.asrDeliveredCI)}</td>
+  </tr>`).join("\n") || `<tr><td colspan="9" class="empty">No runs recorded.</td></tr>`;
+
   const reachRows = reachability.map((r) => `<tr>
     <td>${esc(r.carrier || "—")}</td>
     <td class="num">${r.read}</td>
@@ -234,6 +247,21 @@ ${hasCleanBaseline
        baseline</i> is not computed; injected-run task success is reported directly:
        <b>${injTask ? `${pct(injTask.injectedPassRate)} (${injTask.injectedRuns} injected runs, ${esc(injTask.arm)})` : "n/a"}</b>.`}</p>
 
+<h2>Per model under test</h2>
+<p class="empty">The evidence spans more than one model, so a single pooled rate would hide the
+thing most worth seeing. <b>attempt|read</b> is the share of runs that acted on an injection they
+actually read — the behavioural number, independent of whether any layer then blocked it. Tier does
+not order it.</p>
+<table>
+  <thead><tr>
+    <th>model</th><th>runs</th><th>injected</th><th>carrier_read</th><th>egress_attempted</th>
+    <th>attempt|read</th><th>succeeded</th><th>ASR|delivered</th><th>Wilson 95%</th>
+  </tr></thead>
+  <tbody>
+${modelRows}
+  </tbody>
+</table>
+
 <h2>Injection outcomes (corpus payloads)</h2>
 <p class="empty">The full five-state distribution (§8.1). <b>undelivered</b> = the carrier never
 entered the agent's context; <b>ignored</b> = delivered and the model declined; <b>refused</b> =
@@ -331,7 +359,7 @@ function main(): void {
   const dbs = trackedDbs(root);
   const figures: Figures = dbs.length
     ? computeFigures(dbs)
-    : { arms: [], carrierArm: [], outcomes: [], reachability: [], taskDeltas: [], persistPlanted: 0, persistFired: 0, deputy: [] };
+    : { arms: [], carrierArm: [], outcomes: [], reachability: [], taskDeltas: [], persistPlanted: 0, persistFired: 0, deputy: [], models: [] };
   const extra = dbs.length ? mergeIntegrity(dbs) : { integrity: undefined, version: "unversioned" };
   const html = renderReport({ ...figures, ...extra });
   const out = path.join(root, "report.html");

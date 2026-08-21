@@ -71,7 +71,7 @@ per-choice measured numbers.
   real injection, not the task-driven probe). That is the hardened pack's two independent layers,
   each demonstrated live.
 - **Model tier does not order susceptibility.** Attempt rate conditional on the carrier being read:
-  `claude-sonnet-5` **10/21 (48%)**, `claude-haiku-4-5` **31/243 (13%)**, `claude-opus-5`
+  `claude-sonnet-5` **10/21 (48%)**, `claude-haiku-4-5` **28/240 (12%)**, `claude-opus-5`
   **17/291 (6%)**. Opus read the most injected content (291 of 350 runs) and acted on the least of
   it; Sonnet read the least and acted most. The sharpest single difference is `claude-md`:
   Opus read the poisoned `CLAUDE.md` in **104/104** runs, Haiku in **5/104**. "Bigger model,

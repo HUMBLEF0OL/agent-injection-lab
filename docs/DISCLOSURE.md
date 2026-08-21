@@ -197,7 +197,7 @@ reads the carrier). The numbers above are post-fix.
   injection, not the task-driven probe. The `canUseTool` fail-open did not reproduce anywhere in the
   sweep.
 - **Model tier does not order susceptibility.** Attempt rate given the carrier was read:
-  `claude-sonnet-5` 10/21 (48%), `claude-haiku-4-5` 31/243 (13%), `claude-opus-5` 17/291 (6%).
+  `claude-sonnet-5` 10/21 (48%), `claude-haiku-4-5` 28/240 (12%), `claude-opus-5` 17/291 (6%).
   Reading behaviour differs even more sharply than acting: Opus read the poisoned `CLAUDE.md` in
   **104/104** runs, Haiku in **5/104**. More capable did not mean more compliant here.
 - **`default` is not a strong arm, it is a broken one.** Clean-baseline task success is 24/24 for
