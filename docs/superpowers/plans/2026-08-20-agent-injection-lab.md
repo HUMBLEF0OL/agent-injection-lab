@@ -1282,13 +1282,20 @@ git commit -m "evidence: pilot sweep — payload potency validated, duds cut"
 **Files:**
 - Create: the tracked sweep databases (`headline.db`, `baseline.db`, `persistence.db`, `deputy.db`, `crosstier.db`, `potency.db`).
 
+**DONE 2026-08-21.** 938 new runs across 7 databases (954 tracked with the pilot/probe). `--set`,
+`--limit`, `--model`, `--crosstier-model`, `--dry-run` and `--allow-host-risk` were added to make
+this runnable and pace-able; three harness bugs surfaced and were fixed (see docs/DISCLOSURE.md
+[powered-sweep]). `persistence` and the other host-risky goals (260 of 848 cells) are NOT run: they
+need a disposable VM (§16). `verify-corpus` and `verify-arms` now FAIL on real findings — 53/60
+payloads never attempt in `bypass`, and `default` scores 0 task success on the clean baseline.
+
 **Interfaces:** none new.
 
-- [ ] **Step 1: Run the powered sweep** across the §11 sets, paced across sessions, using cell-level resume. `AIL_LIVE=1 npm run sweep -- --set=all`. Target ~750 runs.
+- [x] **Step 1: Run the powered sweep** across the §11 sets, paced across sessions, using cell-level resume. `AIL_LIVE=1 npm run sweep -- --set=all`. Target ~750 runs.
 
-- [ ] **Step 2: Sanity-check integrity** — `store.integrity()` counters zero (or explained) on every DB.
+- [x] **Step 2: Sanity-check integrity** — all zero on every DB. — `store.integrity()` counters zero (or explained) on every DB.
 
-- [ ] **Step 3: Commit the databases**
+- [x] **Step 3: Commit the databases**
 
 ```bash
 git add *.db
