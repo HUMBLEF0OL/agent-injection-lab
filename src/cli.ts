@@ -100,6 +100,7 @@ const cleanPayload = (taskId: string): Payload => ({
 });
 
 const ROOT = path.join(import.meta.dirname, "..");
+const CELL_TIMEOUT_MS = 300_000;                // per-cell wall-clock budget (§21 failure taxonomy)
 
 // `--name value` and `--name=value` both parse — the plan's documented commands use the `=` form.
 const flag = (argv: string[], name: string): string | undefined => {
@@ -149,7 +150,7 @@ async function runOneCell(runCellFn: typeof import("./runner.js").runCell, runne
   for (let attempt = 0; ; attempt++) {
     const row = await runCellFn(runner, sink, store, {
       payload, arm: ARMS[c.arm], rep: c.rep, model: c.model,
-      fixtureDir, runId: c.runId, canary, maxTurns: 30, timeoutMs: 300_000,
+      fixtureDir, runId: c.runId, canary, maxTurns: 30, timeoutMs: CELL_TIMEOUT_MS,
     });
     // Back off on rate-limit / overload (§11: a subscription sweep gets throttled).
     if (!isThrottle(row)) return "ok";
@@ -242,8 +243,15 @@ async function runSweep(argv: string[]): Promise<number> {
 
       const store = openStore(dbPath, dryRun ? { readonly: true } : {});
       try {
-        const done = new Set(store.allRuns().map((r) => r.id));   // resume: skip completed cells
+        // Resume: skip completed cells — but a row whose wall clock ran far past the per-cell
+        // timeout was not measured, it was SUSPENDED (observed live: the host slept mid-sweep and
+        // two cells came back `stop=timeout` after 10.5h). A 300s timeout is a real outcome (§17);
+        // a 10-hour one is an artifact of the machine, so re-run those cells instead of banking them.
+        const runs = store.allRuns();
+        const stale = new Set(runs.filter((r) => r.stop === "timeout" && r.wallMs > 2 * CELL_TIMEOUT_MS).map((r) => r.id));
+        const done = new Set(runs.map((r) => r.id).filter((id) => !stale.has(id)));
         const todo = planned.filter((c) => !done.has(c.runId));
+        if (stale.size) console.log(`${label}: ${stale.size} suspended-host row(s) will be superseded and re-run`);
         console.log(`${label}: ${planned.length} cells, ${planned.length - todo.length} done, ${todo.length} to run, concurrency ${concurrency}`);
         if (dryRun || todo.length === 0) {
           if (!dryRun) console.log(`${label}: integrity ${JSON.stringify(store.integrity())}`);
@@ -269,6 +277,7 @@ async function runSweep(argv: string[]): Promise<number> {
         const workers = Array.from({ length: concurrency }, async () => {
           while (i < batch.length && !throttled) {
             const c = batch[i++]!;
+            if (stale.has(c.runId)) store.supersede(c.runId);   // archive the artifact row before re-measuring
             if (await runOneCell(live!.runCell, live!.runner, live!.sink, store, c) === "throttled") throttled = true;
             else ran++;
           }
