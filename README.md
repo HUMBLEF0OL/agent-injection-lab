@@ -115,6 +115,7 @@ npm run sweep -- --set=all --dry-run           # what would run, per set — key
 npm run sweep -- --set=potency                 # one set  -> potency.db
 npm run sweep -- --set=headline --limit=50     # pace a long set across sessions
 npm run sweep -- --set=all --allow-host-risk   # the full plan — throwaway VM only (see above)
+npm run sweep -- --set=crosstier --crosstier-model=claude-opus-5 --db=crosstier-opus.db
 ```
 
 The `persist`, `write-outside`, `add-dep` and `postinstall` payloads are **excluded by default**:

@@ -40,6 +40,7 @@ export interface PlanOpts {
   headlineN?: number;
   reps?: number;
   baselineFixtures?: number;
+  crosstierModel?: string;          // the cross-tier comparison model (default sonnet, §11)
 }
 
 // kind is folded into the hash so a potency cell and a headline cell on the same
@@ -54,6 +55,7 @@ export function planCells(opts: PlanOpts = {}): Cell[] {
   const reps = opts.reps ?? 3;
   const headlineN = opts.headlineN ?? 18;
   const baselineN = opts.baselineFixtures ?? 12;
+  const crosstierModel = opts.crosstierModel ?? SONNET;
   const cells: Cell[] = [];
   const mk = (kind: CellKind, taskId: string, payload: Payload | null, arm: ArmId, rep: number, session: "A" | "B" | null, model: string): void => {
     const payloadId = payload?.id ?? null;
@@ -81,7 +83,7 @@ export function planCells(opts: PlanOpts = {}): Cell[] {
   for (const p of deputy) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) mk("deputy", p.taskId, p, arm, r, null, HAIKU);
 
   // Cross-tier: 2 arms × 8 headline payloads × 2 reps on sonnet (§11).
-  for (const p of headline.slice(0, 8)) for (const arm of CROSSTIER_ARMS) for (let r = 0; r < 2; r++) mk("crosstier", p.taskId, p, arm, r, null, SONNET);
+  for (const p of headline.slice(0, 8)) for (const arm of CROSSTIER_ARMS) for (let r = 0; r < 2; r++) mk("crosstier", p.taskId, p, arm, r, null, crosstierModel);
 
   return cells;
 }
@@ -218,10 +220,14 @@ async function runSweep(argv: string[]): Promise<number> {
   const dryRun = has(argv, "--dry-run");
   const headlineNRaw = flag(argv, "--headline-n");
   const repsRaw = flag(argv, "--reps");
+  // A different cross-tier model is a different experiment on the SAME cells: run ids do not
+  // include the model, so it needs its own DB (--set=crosstier --crosstier-model=X --db=X.db).
+  const crosstierModel = flag(argv, "--crosstier-model");
 
   const cells = orderCells(planCells({
     ...(headlineNRaw !== undefined ? { headlineN: Number(headlineNRaw) } : {}),
     ...(repsRaw !== undefined ? { reps: Number(repsRaw) } : {}),
+    ...(crosstierModel !== undefined ? { crosstierModel } : {}),
   }));
   if (!allowHostRisk) console.log(`sweep: host-risky goals excluded (${HOST_RISKY.join(", ")}) — pass --allow-host-risk only in a disposable VM (§16)`);
 
@@ -365,7 +371,8 @@ async function main(argv: string[]): Promise<number> {
     case "verify-arms": return verifyArms(argv);
     default:
       console.error(`usage: cli <sweep|verify-corpus|verify-arms> [--set <${SETS.join("|")}|all>] [--db <path>]`);
-      console.error("       [--concurrency <n>] [--limit <n>] [--headline-n <n>] [--reps <n>] [--dry-run] [--allow-host-risk]");
+      console.error("       [--concurrency <n>] [--limit <n>] [--headline-n <n>] [--reps <n>]");
+      console.error("       [--crosstier-model <id>] [--dry-run] [--allow-host-risk]");
       return 2;
   }
 }
