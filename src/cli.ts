@@ -40,6 +40,7 @@ export interface PlanOpts {
   headlineN?: number;
   reps?: number;
   baselineFixtures?: number;
+  model?: string;                   // the model UNDER TEST (default haiku, §11/§21.2)
   crosstierModel?: string;          // the cross-tier comparison model (default sonnet, §11)
 }
 
@@ -56,6 +57,7 @@ export function planCells(opts: PlanOpts = {}): Cell[] {
   const headlineN = opts.headlineN ?? 18;
   const baselineN = opts.baselineFixtures ?? 12;
   const crosstierModel = opts.crosstierModel ?? SONNET;
+  const model = opts.model ?? HAIKU;
   const cells: Cell[] = [];
   const mk = (kind: CellKind, taskId: string, payload: Payload | null, arm: ArmId, rep: number, session: "A" | "B" | null, model: string): void => {
     const payloadId = payload?.id ?? null;
@@ -63,24 +65,24 @@ export function planCells(opts: PlanOpts = {}): Cell[] {
   };
 
   // Potency: every payload × bypass × 1 rep — the verify-corpus evidence (§11).
-  for (const p of corpus) mk("potency", p.taskId, p, "bypass", 0, null, HAIKU);
+  for (const p of corpus) mk("potency", p.taskId, p, "bypass", 0, null, model);
 
   // Headline: 7 arms × headlineN payloads × reps (§11).
   const headline = selectHeadline(corpus, headlineN);
-  for (const p of headline) for (const arm of ARM_IDS) for (let r = 0; r < reps; r++) mk("headline", p.taskId, p, arm, r, null, HAIKU);
+  for (const p of headline) for (const arm of ARM_IDS) for (let r = 0; r < reps; r++) mk("headline", p.taskId, p, arm, r, null, model);
 
   // Clean baseline: distinct fixtures × 7 arms × 2 reps, NO injection (§8.2/§11) — doubles as
   // the verify-arms evidence.
   const fixtures = [...new Set(corpus.map((p) => p.taskId))].sort().slice(0, baselineN);
-  for (const taskId of fixtures) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) mk("baseline", taskId, null, arm, r, null, HAIKU);
+  for (const taskId of fixtures) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) mk("baseline", taskId, null, arm, r, null, model);
 
   // Persistence: 7 arms × persist payloads × 2 reps × 2 sessions (§8.3, §11).
   const persist = corpus.filter((p) => p.goal === "persist");
-  for (const p of persist) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) for (const session of ["A", "B"] as const) mk("persistence", p.taskId, p, arm, r, session, HAIKU);
+  for (const p of persist) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) for (const session of ["A", "B"] as const) mk("persistence", p.taskId, p, arm, r, session, model);
 
   // Confused-deputy: 7 arms × deputy payloads × 2 reps (§11).
   const deputy = corpus.filter((p) => p.goal === "deputy");
-  for (const p of deputy) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) mk("deputy", p.taskId, p, arm, r, null, HAIKU);
+  for (const p of deputy) for (const arm of ARM_IDS) for (let r = 0; r < 2; r++) mk("deputy", p.taskId, p, arm, r, null, model);
 
   // Cross-tier: 2 arms × 8 headline payloads × 2 reps on sonnet (§11).
   for (const p of headline.slice(0, 8)) for (const arm of CROSSTIER_ARMS) for (let r = 0; r < 2; r++) mk("crosstier", p.taskId, p, arm, r, null, crosstierModel);
@@ -223,11 +225,15 @@ async function runSweep(argv: string[]): Promise<number> {
   // A different cross-tier model is a different experiment on the SAME cells: run ids do not
   // include the model, so it needs its own DB (--set=crosstier --crosstier-model=X --db=X.db).
   const crosstierModel = flag(argv, "--crosstier-model");
+  // The model under test is a constant by design (§11). Overriding it is a DIFFERENT experiment
+  // on the same cells, and run ids do not include the model — so it needs its own --db too.
+  const modelUnderTest = flag(argv, "--model");
 
   const cells = orderCells(planCells({
     ...(headlineNRaw !== undefined ? { headlineN: Number(headlineNRaw) } : {}),
     ...(repsRaw !== undefined ? { reps: Number(repsRaw) } : {}),
     ...(crosstierModel !== undefined ? { crosstierModel } : {}),
+    ...(modelUnderTest !== undefined ? { model: modelUnderTest } : {}),
   }));
   if (!allowHostRisk) console.log(`sweep: host-risky goals excluded (${HOST_RISKY.join(", ")}) — pass --allow-host-risk only in a disposable VM (§16)`);
 
@@ -372,7 +378,7 @@ async function main(argv: string[]): Promise<number> {
     default:
       console.error(`usage: cli <sweep|verify-corpus|verify-arms> [--set <${SETS.join("|")}|all>] [--db <path>]`);
       console.error("       [--concurrency <n>] [--limit <n>] [--headline-n <n>] [--reps <n>]");
-      console.error("       [--crosstier-model <id>] [--dry-run] [--allow-host-risk]");
+      console.error("       [--model <id>] [--crosstier-model <id>] [--dry-run] [--allow-host-risk]");
       return 2;
   }
 }
