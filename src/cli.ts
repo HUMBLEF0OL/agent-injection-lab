@@ -123,16 +123,17 @@ export const SETS = ["potency", "headline", "baseline", "persistence", "deputy",
 export type SetName = (typeof SETS)[number];
 
 // Goals that can touch the HOST as soon as an arm has no enforcement (`bypass` has none): they
-// write outside the sandbox root or install real packages. Excluded BY DEFAULT — a sweep is a
-// disposable-environment operation (§16) and the default must not damage a primary machine. Pass
-// --allow-host-risk when the sweep really is running in a throwaway VM.
+// write outside the sandbox root or install real packages. The sweep NEVER runs them — there is no
+// flag, because a flag is one typo away from a damaged machine and this harness is run on real
+// developer machines, not only the disposable VM §16 assumes. Measuring them is a deliberate
+// source edit in a throwaway environment, not a command-line option.
 const HOST_RISKY: readonly Goal[] = ["persist", "write-outside", "add-dep", "postinstall"];
 
 /** PURE. The cells of one §11 set, minus host-risky payloads unless explicitly allowed. */
-export function selectSet(cells: Cell[], set: SetName | "all", opts: { allowHostRisk?: boolean } = {}): Cell[] {
+export function selectSet(cells: Cell[], set: SetName | "all"): Cell[] {
   return cells.filter((c) =>
     (set === "all" || c.kind === set) &&
-    (opts.allowHostRisk === true || c.payload === null || !HOST_RISKY.includes(c.payload.goal)));
+    (c.payload === null || !HOST_RISKY.includes(c.payload.goal)));
 }
 
 // ---- live path (dynamic imports keep the SDK out of `planCells` importers) ----
@@ -218,7 +219,6 @@ async function runSweep(argv: string[]): Promise<number> {
   const dbFor = (s: SetName | "all"): string => dbOverride ?? (s === "all" ? DEFAULT_DB : path.join(ROOT, `${s}.db`));
   const concurrency = Math.max(1, Number(flag(argv, "--concurrency") ?? 2));
   const limitRaw = flag(argv, "--limit");
-  const allowHostRisk = has(argv, "--allow-host-risk");
   const dryRun = has(argv, "--dry-run");
   const headlineNRaw = flag(argv, "--headline-n");
   const repsRaw = flag(argv, "--reps");
@@ -235,7 +235,7 @@ async function runSweep(argv: string[]): Promise<number> {
     ...(crosstierModel !== undefined ? { crosstierModel } : {}),
     ...(modelUnderTest !== undefined ? { model: modelUnderTest } : {}),
   }));
-  if (!allowHostRisk) console.log(`sweep: host-risky goals excluded (${HOST_RISKY.join(", ")}) — pass --allow-host-risk only in a disposable VM (§16)`);
+  console.log(`sweep: host-risky goals are never run (${HOST_RISKY.join(", ")}) — §16`);
 
   const { openStore } = await import("./store.js");
   // The SDK/sink are built once, lazily, and only when a cell will really run — so --dry-run and
@@ -247,7 +247,7 @@ async function runSweep(argv: string[]): Promise<number> {
 
   try {
     for (const s of sets) {
-      const planned = selectSet(cells, s, { allowHostRisk });
+      const planned = selectSet(cells, s);
       const dbPath = dbFor(s);
       const label = `${s} (${path.relative(ROOT, dbPath)})`;
       if (dryRun && !fs.existsSync(dbPath)) { console.log(`${label}: ${planned.length} cells, 0 done, ${planned.length} to run`); continue; }
@@ -378,7 +378,7 @@ async function main(argv: string[]): Promise<number> {
     default:
       console.error(`usage: cli <sweep|verify-corpus|verify-arms> [--set <${SETS.join("|")}|all>] [--db <path>]`);
       console.error("       [--concurrency <n>] [--limit <n>] [--headline-n <n>] [--reps <n>]");
-      console.error("       [--model <id>] [--crosstier-model <id>] [--dry-run] [--allow-host-risk]");
+      console.error("       [--model <id>] [--crosstier-model <id>] [--dry-run]");
       return 2;
   }
 }

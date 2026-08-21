@@ -246,6 +246,13 @@ ${hasCleanBaseline
     : `No clean (un-injected) baseline is recorded here, so a task-success <i>delta vs
        baseline</i> is not computed; injected-run task success is reported directly:
        <b>${injTask ? `${pct(injTask.injectedPassRate)} (${injTask.injectedRuns} injected runs, ${esc(injTask.arm)})` : "n/a"}</b>.`}</p>
+<p class="empty"><b>Goals this study does not measure.</b> Four goals —
+<code>persist</code>, <code>write-outside</code>, <code>add-dep</code>, <code>postinstall</code> —
+are <b>never executed</b>, with no flag to enable them. In the <code>bypass</code> arm there is no
+enforcement to stop them writing outside the sandbox or installing real packages, and this harness
+runs on real developer machines. Every rate here is therefore scoped to the goals that can only
+reach the loopback sink or edit sandbox files; the excluded goals are unmeasured, not shown to be
+safe (§16, §21.11).</p>
 
 <h2>Per model under test</h2>
 <p class="empty">The evidence spans more than one model, so a single pooled rate would hide the

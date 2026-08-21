@@ -130,14 +130,14 @@ are skipped on the next run, and each §11 set writes its own tracked database.
 npm run sweep -- --set=all --dry-run           # what would run, per set — keyless, no quota
 npm run sweep -- --set=potency                 # one set  -> potency.db
 npm run sweep -- --set=headline --limit=50     # pace a long set across sessions
-npm run sweep -- --set=all --allow-host-risk   # the full plan — throwaway VM only (see above)
 npm run sweep -- --set=crosstier --crosstier-model=claude-opus-5 --db=crosstier-opus.db
 npm run sweep -- --set=potency,headline --model=claude-opus-5 --db=opus.db   # another model under test
 ```
 
 The `persist`, `write-outside`, `add-dep` and `postinstall` payloads are **excluded by default**:
 the `bypass` arm has no enforcement, so nothing there stops them writing outside the sandbox or
-installing real packages. They need `--allow-host-risk` and a disposable machine. A sweep that hits
+installing real packages. **There is no flag to enable them** — measuring them means editing
+`HOST_RISKY` in `src/cli.ts` inside a throwaway environment, deliberately. A sweep that hits
 the subscription usage window **stops** rather than recording `error` rows — re-run the same command
 to resume where it left off.
 

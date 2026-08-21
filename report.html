@@ -55,6 +55,13 @@ Enforcement view: <b>6</b> attempted-egress run(s)
 Every arm carries at least 20 injection runs, so the per-arm rates are powered
        estimates within the stated scope (§18) rather than directional readings.
 Task-success change under injection is shown per arm below.</p>
+<p class="empty"><b>Goals this study does not measure.</b> Four goals —
+<code>persist</code>, <code>write-outside</code>, <code>add-dep</code>, <code>postinstall</code> —
+are <b>never executed</b>, with no flag to enable them. In the <code>bypass</code> arm there is no
+enforcement to stop them writing outside the sandbox or installing real packages, and this harness
+runs on real developer machines. Every rate here is therefore scoped to the goals that can only
+reach the loopback sink or edit sandbox files; the excluded goals are unmeasured, not shown to be
+safe (§16, §21.11).</p>
 
 <h2>Per model under test</h2>
 <p class="empty">The evidence spans more than one model, so a single pooled rate would hide the

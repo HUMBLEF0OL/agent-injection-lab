@@ -179,7 +179,9 @@ reads the carrier). The numbers above are post-fix.
   cells** (the whole `persistence` set, 15 potency and 105 headline cells).
   Under `bypass` there is no enforcement to stop those goals writing outside the sandbox or
   installing real packages, and this ran on a primary machine, not the disposable VM §16 assumes.
-  `--allow-host-risk` runs them; the exclusion is printed at the start of every sweep.
+  There is no flag to run them: the exclusion is unconditional and printed at the start of every
+  sweep. Verified against the committed evidence — **0 runs with a host-risky goal, 0 fs-channel
+  sightings**, so nothing outside a sandbox was ever written.
 - **Reproduce:** `npm run sweep -- --set=all` (add `--model` / `--crosstier-model` for the other
   tiers, each into its own `--db`).
 
