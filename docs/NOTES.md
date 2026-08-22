@@ -51,5 +51,13 @@ Re-placement is corpus surgery that re-opens the powered sweep, so it is **not**
 recorded as the identified next step. `verify-corpus` is deliberately left failing until it is:
 the failing gate *is* this finding.
 
+**How CI treats the two failing gates.** `verify-corpus` and `verify-arms` are *finding-gates*, and
+a published finding must not read as a broken build. They run with `continue-on-error: true` in
+[`.github/workflows/gates.yml`](../.github/workflows/gates.yml), so they stay visible in the log
+(and still exit non-zero locally) without masking the correctness gates — `npm test`,
+`verify-fixtures`, `evidence`, `check-leaks`, the report-reproduction gate — or blocking the Pages
+deploy of `report.html`. They go back to blocking the moment the corpus re-placement lands; that is
+the signal that the floors are meant to hold again.
+
 **Host safety:** nothing new was executed to finish T18 — the analysis is computed from the
 already-committed `potency.db`. 0 host-risky runs and 0 fs-channel sightings across all databases.
