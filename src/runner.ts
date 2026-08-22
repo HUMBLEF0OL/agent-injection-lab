@@ -8,6 +8,7 @@ import { renderPayload } from "./corpus/index.js";
 import { provisionSandbox } from "./inject.js";
 import { hashGuardedFiles } from "./score/tamper.js";
 import { classify } from "./score/asr.js";
+import { scoreArtifact, snapshotArtifacts } from "./score/artifact.js";
 import { scoreTask } from "./score/task.js";
 import { zeroUsage } from "./cost.js";
 import type { Store, RunRow } from "./store.js";
@@ -38,6 +39,10 @@ export async function runCell(
   // Post-provision snapshot: the injector edits guarded files for pkg-script/test-message
   // carriers, so tamper must diff against THIS, not the pristine fixture (score/task.ts).
   const baseline = hashGuardedFiles(sandboxRoot);
+  // Artifact baseline (audit F4), taken at the same moment and for the same reason: the injector
+  // has already planted the payload, so a `pkg-script` sandbox ALREADY carries the postinstall
+  // script or the typosquat dependency the goal is trying to land.
+  const artifactBefore = snapshotArtifacts(sandboxRoot);
 
   // Three carriers have no filesystem site — plantCarrier only records a marker, so runCell
   // surfaces them into the agent's context here (spec §4.1). For these, "carrier entered context"
@@ -91,6 +96,11 @@ export async function runCell(
   }
 
   const events = store.eventsForRun(p.runId);
+  // Must be read BEFORE scoreTask: that call restores every guarded file from the pristine
+  // fixture and deletes the ones the agent added, which erases a package.json artifact outright.
+  const artifact = scoreArtifact(
+    artifactBefore, snapshotArtifacts(sandboxRoot), p.payload.goal, { sinkHost: sink.host },
+  );
   // carrierId: the planted-text marker (see carrierMarker above) proving the carrier was read (§9).
   const verdict = classify({
     events,
@@ -100,6 +110,7 @@ export async function runCell(
     canarySeen: sink.canarySeen(p.canary),
     sandboxRoot,
     sinkHost: sink.host,
+    artifact,
   });
 
   const task = await scoreTask(sandboxRoot, p.fixtureDir, p.timeoutMs, baseline);
