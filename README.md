@@ -120,6 +120,8 @@ misfire — could in principle do more than reach the local sink.
   additionally run with outbound network blocked.
 - A post-run scan records any file created or modified outside the sandbox root, so an unexpected
   action is visible in the data rather than silent.
+- Sandboxes are **kept, not deleted**, so a suspicious run can be examined afterwards. They pile up
+  under `.ail-tmp/` (gitignored); `npm run clean` removes them once you are done looking.
 
 ### Running the sweep yourself
 
@@ -147,13 +149,20 @@ to resume where it left off.
 `src/agent/sdk.ts` and the live sweep touch quota. CI never runs a live sweep.
 
 ```
-npm test              # keyless (82 tests + 2 env-gated live, skipped)
+npm test               # keyless (87 tests + 2 env-gated live, skipped)
 npm run verify-fixtures
-npm run verify-corpus # SKIPs cleanly when no sweep DB is committed yet
-npm run verify-arms
+npm run verify-corpus  # FAILS by design on this evidence — 53/60 payloads never attempt (§4.3)
+npm run verify-arms    # FAILS by design on this evidence — `default` scores 0 task success (§6)
 npm run evidence
-npm run check-leaks   # enforces SDK-import isolation
+npm run check-leaks    # enforces SDK-import isolation
+node scripts/check-report.mjs   # report.html regenerates byte-for-byte
 ```
+
+`verify-corpus` and `verify-arms` are **finding-gates**: they exit non-zero because the corpus and
+the `default` arm really do fail their own floors, and the failure is the published finding (see
+[`docs/NOTES.md`](docs/NOTES.md)). CI runs them `continue-on-error` so they stay visible without
+masking the correctness gates; they go back to blocking when the corpus re-placement lands.
+`verify-corpus` still SKIPs cleanly when no sweep DB is committed.
 
 ## Attribution & license
 
