@@ -470,7 +470,7 @@ export function renderReport(figures: ReportInput): string {
   th, td { padding: 8px 12px; border-bottom: 1px solid var(--line); }
   tbody tr:last-child td { border-bottom: 0; }
   tbody tr:hover td { background: var(--accent-wash); }
-  td.num, td.ci { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .num, .ci { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   td.ci { color: var(--ink-3); font-size: 13px; }
   td.empty { font-style: italic; }
   .tag { font-size: 12px; padding: 2px 8px; border-radius: 100px; white-space: nowrap;
@@ -613,8 +613,8 @@ export function renderReport(figures: ReportInput): string {
   <div class="scroller">
   <table>
     <thead><tr>
-      <th>model</th><th>runs</th><th>injected</th><th>carrier_read</th><th>egress_attempted</th>
-      <th>attempt|read</th><th>succeeded</th><th>ASR|delivered</th><th>Wilson 95%</th>
+      <th>model</th><th class="num">runs</th><th class="num">injected</th><th class="num">carrier_read</th><th class="num">egress_attempted</th>
+      <th class="num">attempt|read</th><th class="num">succeeded</th><th class="num">ASR|delivered</th><th class="num">Wilson 95%</th>
     </tr></thead>
     <tbody>
 ${modelRows}
@@ -635,7 +635,7 @@ ${modelRows}
   <h3>Pooled read rate and verdict</h3>
   <div class="scroller">
   <table>
-    <thead><tr><th>carrier</th><th>read</th><th>runs</th><th>read rate</th><th>models read</th><th>verdict</th></tr></thead>
+    <thead><tr><th>carrier</th><th class="num">read</th><th class="num">runs</th><th class="num">read rate</th><th class="num">models read</th><th>verdict</th></tr></thead>
     <tbody>
 ${reachRows}
     </tbody>
@@ -646,7 +646,7 @@ ${reachRows}
   which is why it cannot decide whether a carrier is worth keeping in the corpus.</p>
   <div class="scroller">
   <table>
-    <thead><tr><th>carrier</th><th>model</th><th>read</th><th>runs</th><th>read rate</th></tr></thead>
+    <thead><tr><th>carrier</th><th>model</th><th class="num">read</th><th class="num">runs</th><th class="num">read rate</th></tr></thead>
     <tbody>
 ${reachModelRows}
     </tbody>
@@ -672,8 +672,8 @@ ${reachModelRows}
   <div class="scroller">
   <table>
     <thead><tr>
-      <th>arm</th><th>runs</th><th>succeeded</th><th>blocked</th><th>refused</th><th>ignored</th>
-      <th>undelivered</th><th>carrier_read</th><th>egress_attempted</th><th>ASR|delivered</th><th>Wilson 95%</th>
+      <th>arm</th><th class="num">runs</th><th class="num">succeeded</th><th class="num">blocked</th><th class="num">refused</th><th class="num">ignored</th>
+      <th class="num">undelivered</th><th class="num">carrier_read</th><th class="num">egress_attempted</th><th class="num">ASR|delivered</th><th class="num">Wilson 95%</th>
     </tr></thead>
     <tbody>
 ${outcomeRows}
@@ -697,8 +697,8 @@ ${outcomeRows}
   <div class="scroller">
   <table>
     <thead><tr>
-      <th>arm</th><th>attempted</th><th>succeeded</th><th>blocked</th>
-      <th>success</th><th>Wilson 95%</th><th>block</th><th>Wilson 95%</th>
+      <th>arm</th><th class="num">attempted</th><th class="num">succeeded</th><th class="num">blocked</th>
+      <th class="num">success</th><th class="num">Wilson 95%</th><th class="num">block</th><th class="num">Wilson 95%</th>
     </tr></thead>
     <tbody>
 ${armRows || `<tr><td colspan="8" class="empty">No arm figures.</td></tr>`}
@@ -712,7 +712,7 @@ ${armRows || `<tr><td colspan="8" class="empty">No arm figures.</td></tr>`}
   <p class="note">Which content surfaces beat which permission layers (attempted egress only).</p>
   <div class="scroller">
   <table>
-    <thead><tr><th>carrier</th><th>arm</th><th>attempted</th><th>succeeded</th><th>blocked</th><th>block rate</th></tr></thead>
+    <thead><tr><th>carrier</th><th>arm</th><th class="num">attempted</th><th class="num">succeeded</th><th class="num">blocked</th><th class="num">block rate</th></tr></thead>
     <tbody>
 ${gridRows}
     </tbody>
