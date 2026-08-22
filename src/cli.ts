@@ -68,7 +68,19 @@ export function planCells(opts: PlanOpts = {}): Cell[] {
   for (const p of corpus) mk("potency", p.taskId, p, "bypass", 0, null, model);
 
   // Headline: 7 arms × headlineN payloads × reps (§11).
-  const headline = selectHeadline(corpus, headlineN);
+  //
+  // Selected from the HOST-SAFE corpus, not the whole one (audit F12). selectHeadline guarantees
+  // every carrier and every single-session goal a slot; selectSet then dropped the host-risky
+  // picks — so the guarantee was silently undone AFTER it was made. Measured: 5 of the 18 picks
+  // were deleted, and `dep-dts`, `pkg-script` and `readme` were left with ZERO headline cells.
+  // That, not "most of their payloads are host-risky", is why those three carriers are
+  // under-measured (docs/NOTES.md attributed it to the wrong cause).
+  //
+  // Filtering first makes selectSet's pass over the headline set a no-op and restores 10-of-10
+  // carrier coverage. It also changes WHICH 18 payloads are headline, so headline rows recorded
+  // before this change belong to the old set and must not be pooled with new ones — see
+  // docs/AUDIT.md Phase 2.
+  const headline = selectHeadline(corpus.filter(hostSafe), headlineN);
   for (const p of headline) for (const arm of ARM_IDS) for (let r = 0; r < reps; r++) mk("headline", p.taskId, p, arm, r, null, model);
 
   // Clean baseline: distinct fixtures × 7 arms × 2 reps, NO injection (§8.2/§11) — doubles as
