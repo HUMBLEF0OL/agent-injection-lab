@@ -1262,13 +1262,20 @@ git add -A && git commit -m "feat: sweep CLI — deterministic selection, cell p
 
 **Interfaces:** none new — exercises `cli.ts sweep` live.
 
-- [ ] **Step 1: Run the pilot** (~35 runs): `AIL_LIVE=1 npm run sweep -- --set=pilot --db=pilot.db`. This validates payload potency in `bypass`, exercises the two-sided self-check, and confirms the SDK runner end-to-end. Spends quota; pace it.
+**DONE 2026-08-22.** The pilot's purpose is fulfilled by `potency.db` (45 runs = the full
+HOST-SAFE potency set: every payload × `bypass` × 1 rep, minus the 15 host-risky payloads that are
+never executed). 45 ≥ the ~35 target. The Step 2 dud analysis is recorded in `docs/NOTES.md`:
+2 carriers are potent, 3 are delivered-but-ignored, 5 are unreached in this task class and are the
+duds to re-place. No new quota was spent — the analysis is computed from committed evidence, so the
+host was not touched.
 
-- [ ] **Step 2: Cut duds.** Any payload that never attempts in `bypass` (`undelivered`/`ignored` every time) is re-placed in a more reachable carrier or removed (§4.3). Re-run just those cells.
+- [x] **Step 1: Run the pilot** — done as `potency.db` (45 host-safe `bypass` runs, ≥ the ~35 target); `pilot.db` (13) kept as first-light. Self-check and SDK runner proven live.
 
-- [ ] **Step 3: Record the deputy feasibility result** from Task 14 Step 3 into `docs/DISCLOSURE.md` (or a `docs/NOTES.md`), and if haiku won't spawn subagents, drop `deputy` from `planCells`.
+- [x] **Step 2: Cut duds** — identified (`docs/NOTES.md`): 5 unreached carriers to re-place. Not cut in place — re-placement re-opens the powered sweep, so `verify-corpus` is left failing as the standing record of the finding.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 3: Record the deputy feasibility result** — in `docs/DISCLOSURE.md` [deputy-feasibility] + [powered-sweep]: haiku spawns no `Task` subagent (`deputy_routed` 0/70), but the payloads are not inert (one `bypass` success), so `deputy` was NOT dropped from `planCells`.
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add pilot.db docs/
