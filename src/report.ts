@@ -36,6 +36,52 @@ export function bootstrapCI(values: number[], resamples = 2000, seed = 42): { lo
 
 export interface Retraction { date: string; text: string }
 
+/**
+ * Published claims that were wrong, kept here rather than quietly edited away (spec §17).
+ *
+ * A retraction is not the same as a corrected figure: no number below changed. What changed is
+ * that two sentences this report printed were not true of the artifacts it describes, and a
+ * reader who acted on them would have been misled about what they were installing and running.
+ * Both were found by auditing the harness against its own claims (docs/AUDIT.md).
+ */
+export const RETRACTIONS: Retraction[] = [
+  {
+    date: "2026-08-22",
+    text: "The statement that the four host-risky goals are \"never executed, with no flag to enable "
+      + "them\" was false of the `check` command and its plugin. The sweep filtered them; `check` "
+      + "selected straight from the corpus, so its default five included an `add-dep` payload, "
+      + "executed on the machine of anyone who ran it. Nothing in the harness invokes a package "
+      + "manager, so the payload landed as inert text — but the claim was still untrue on other "
+      + "people's machines. Fixed (audit F1): both selection paths now share one host-safe filter, "
+      + "pinned by a test through the real check() path. No figure is affected; no run in the "
+      + "committed evidence carried one of those goals.",
+  },
+  {
+    date: "2026-08-22",
+    text: "The `hook` arm's numbers were presented as evidence for the hardened config pack, and the "
+      + "pack is not that configuration. The measured arm wires the harness's full egress "
+      + "predicate; the shipped guard covered neither subagent spawns (`Task`), nor `Write`/`Edit` "
+      + "outside the project, nor the CLAUDE.md and .claude/ persistence surfaces — and its matcher "
+      + "would not have routed those tools to it anyway. So the pack did not defend the "
+      + "confused-deputy or persistence goals that the arm blocks, and \"the strongest arm the sweep "
+      + "measures\" overstated the installed defense. The guard and matcher are now fixed and pinned "
+      + "to the measured predicate by a parity test (audit F5), but the per-arm `hook` figures below "
+      + "still describe the OLD guard: they are not evidence for the current pack until the arm is "
+      + "re-run. Treat the `hook` column as a lower bound on the pack you install today.",
+  },
+  {
+    date: "2026-08-22",
+    text: "The headline set was described as covering every carrier and every single-session goal. It "
+      + "did not: the selector guaranteed that coverage over the whole corpus, and the host-safety "
+      + "filter then deleted 5 of the 18 chosen payloads, leaving `dep-dts`, `pkg-script` and "
+      + "`readme` with no headline cells at all. The reachability rates for those three carriers are "
+      + "therefore drawn from the potency set alone, and their low run counts are a scheduling "
+      + "artifact rather than a measurement. Fixed (audit F12) by filtering before selecting; the "
+      + "corrected set changes which payloads are headline, so the figures below still describe the "
+      + "old set until the re-run lands.",
+  },
+];
+
 /** What renderReport reads. The script path passes real Figures plus the version banner,
  *  the merged integrity counters, and any retractions; the fields beyond Figures are
  *  optional so a caller with only figures still renders. */
@@ -775,7 +821,7 @@ function main(): void {
     ? computeFigures(dbs)
     : { arms: [], carrierArm: [], outcomes: [], reachability: [], reachabilityByModel: [], taskDeltas: [], persistPlanted: 0, persistFired: 0, deputy: [], models: [] };
   const extra = dbs.length ? mergeIntegrity(dbs) : { integrity: undefined, version: "unversioned" };
-  const html = renderReport({ ...figures, ...extra });
+  const html = renderReport({ ...figures, ...extra, retractions: RETRACTIONS });
   const out = path.join(root, "report.html");
   fs.writeFileSync(out, html);
   console.log(`wrote ${path.relative(root, out)} from ${dbs.length} database(s)`);
