@@ -34,7 +34,11 @@ function within(root: string, p: string): boolean {
     const realRel = path.relative(fs.realpathSync(root), real);
     return !realRel.startsWith("..") && !path.isAbsolute(realRel);
   } catch {
-    return true; // root itself unresolvable (never happens in a real run) — lexical stands
+    // Fails CLOSED (audit F9). This branch is unreachable in a real run — the root is a sandbox we
+    // just created — but a containment predicate that answers "contained" when it could not resolve
+    // the path is the wrong default for the one question it exists to answer. `false` here means
+    // "treat as outside", i.e. deny. The shipped guard does the same, and the parity test pins it.
+    return false;
   }
 }
 
