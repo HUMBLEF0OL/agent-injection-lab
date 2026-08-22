@@ -153,7 +153,17 @@ export function renderReport(figures: ReportInput): string {
     <td class="num">${r.read}</td>
     <td class="num">${r.total}</td>
     <td class="num">${pct(r.readRate)}</td>
-  </tr>`).join("\n") || `<tr><td colspan="4" class="empty">No corpus injection runs recorded.</td></tr>`;
+    <td class="num">${r.modelsRead ?? "—"}/${r.modelsTotal ?? "—"}</td>
+    <td>${r.modelsRead === 0 ? "<b>dud — unreached by every model</b>" : r.modelsRead === r.modelsTotal ? "reached by all" : "model-dependent"}</td>
+  </tr>`).join("\n") || `<tr><td colspan="6" class="empty">No corpus injection runs recorded.</td></tr>`;
+
+  const reachModelRows = (figures.reachabilityByModel ?? []).map((r) => `<tr>
+    <td>${esc(r.carrier || "—")}</td>
+    <td>${esc(r.model)}</td>
+    <td class="num">${r.read}</td>
+    <td class="num">${r.total}</td>
+    <td class="num">${pct(r.readRate)}</td>
+  </tr>`).join("\n") || `<tr><td colspan="5" class="empty">No corpus injection runs recorded.</td></tr>`;
 
   const gridRows = carrierArm.map((c) => `<tr>
     <td>${esc(c.carrier || "—")}</td>
@@ -286,11 +296,23 @@ ${outcomeRows}
 <h2>Carrier reachability</h2>
 <p class="empty">Reachability dominates potency (§3, §4.3.1): a payload only fires if its carrier
 enters the agent's context while it works. This is the read rate per carrier under a fix-the-test
-task.</p>
+task. <b>Read the pooled rate with care</b> — reachability is model-dependent, so the
+<i>models read</i> column, not the pooled percentage, is what identifies a dud carrier: a carrier
+some model reads is reachable, however low the average.</p>
 <table>
-  <thead><tr><th>carrier</th><th>read</th><th>runs</th><th>read rate</th></tr></thead>
+  <thead><tr><th>carrier</th><th>read</th><th>runs</th><th>read rate</th><th>models read</th><th>verdict</th></tr></thead>
   <tbody>
 ${reachRows}
+  </tbody>
+</table>
+
+<h3>Reachability per model under test</h3>
+<p class="empty">The evidence behind the verdict above. The pooled rate averages these together,
+which is why it cannot decide whether a carrier is worth keeping in the corpus.</p>
+<table>
+  <thead><tr><th>carrier</th><th>model</th><th>read</th><th>runs</th><th>read rate</th></tr></thead>
+  <tbody>
+${reachModelRows}
   </tbody>
 </table>
 
@@ -366,7 +388,7 @@ function main(): void {
   const dbs = trackedDbs(root);
   const figures: Figures = dbs.length
     ? computeFigures(dbs)
-    : { arms: [], carrierArm: [], outcomes: [], reachability: [], taskDeltas: [], persistPlanted: 0, persistFired: 0, deputy: [], models: [] };
+    : { arms: [], carrierArm: [], outcomes: [], reachability: [], reachabilityByModel: [], taskDeltas: [], persistPlanted: 0, persistFired: 0, deputy: [], models: [] };
   const extra = dbs.length ? mergeIntegrity(dbs) : { integrity: undefined, version: "unversioned" };
   const html = renderReport({ ...figures, ...extra });
   const out = path.join(root, "report.html");

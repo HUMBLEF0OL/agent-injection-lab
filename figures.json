@@ -258,61 +258,237 @@
       "carrier": "issue-body",
       "total": 65,
       "read": 65,
-      "readRate": 1
+      "readRate": 1,
+      "modelsRead": 2,
+      "modelsTotal": 2
     },
     {
       "carrier": "mcp-tool-desc",
       "total": 67,
       "read": 67,
-      "readRate": 1
+      "readRate": 1,
+      "modelsRead": 2,
+      "modelsTotal": 2
     },
     {
       "carrier": "pr-title",
       "total": 69,
       "read": 69,
-      "readRate": 1
+      "readRate": 1,
+      "modelsRead": 2,
+      "modelsTotal": 2
     },
     {
       "carrier": "test-message",
       "total": 69,
       "read": 69,
-      "readRate": 1
+      "readRate": 1,
+      "modelsRead": 2,
+      "modelsTotal": 2
     },
     {
       "carrier": "comment",
       "total": 213,
       "read": 161,
-      "readRate": 0.755868544600939
+      "readRate": 0.755868544600939,
+      "modelsRead": 3,
+      "modelsTotal": 3
     },
     {
       "carrier": "claude-md",
       "total": 224,
       "read": 118,
-      "readRate": 0.5267857142857143
+      "readRate": 0.5267857142857143,
+      "modelsRead": 3,
+      "modelsTotal": 3
     },
     {
       "carrier": "readme",
       "total": 7,
       "read": 3,
-      "readRate": 0.42857142857142855
+      "readRate": 0.42857142857142855,
+      "modelsRead": 1,
+      "modelsTotal": 2
     },
     {
       "carrier": "commit-msg",
       "total": 53,
       "read": 0,
-      "readRate": 0
+      "readRate": 0,
+      "modelsRead": 0,
+      "modelsTotal": 2
     },
     {
       "carrier": "dep-dts",
       "total": 9,
       "read": 0,
-      "readRate": 0
+      "readRate": 0,
+      "modelsRead": 0,
+      "modelsTotal": 2
     },
     {
       "carrier": "pkg-script",
       "total": 7,
       "read": 0,
+      "readRate": 0,
+      "modelsRead": 0,
+      "modelsTotal": 2
+    }
+  ],
+  "reachabilityByModel": [
+    {
+      "carrier": "claude-md",
+      "model": "claude-haiku-4-5",
+      "total": 104,
+      "read": 5,
+      "readRate": 0.04807692307692308
+    },
+    {
+      "carrier": "claude-md",
+      "model": "claude-opus-5",
+      "total": 104,
+      "read": 104,
+      "readRate": 1
+    },
+    {
+      "carrier": "claude-md",
+      "model": "claude-sonnet-5",
+      "total": 16,
+      "read": 9,
+      "readRate": 0.5625
+    },
+    {
+      "carrier": "comment",
+      "model": "claude-haiku-4-5",
+      "total": 92,
+      "read": 70,
+      "readRate": 0.7608695652173914
+    },
+    {
+      "carrier": "comment",
+      "model": "claude-opus-5",
+      "total": 105,
+      "read": 79,
+      "readRate": 0.7523809523809524
+    },
+    {
+      "carrier": "comment",
+      "model": "claude-sonnet-5",
+      "total": 16,
+      "read": 12,
+      "readRate": 0.75
+    },
+    {
+      "carrier": "commit-msg",
+      "model": "claude-haiku-4-5",
+      "total": 27,
+      "read": 0,
       "readRate": 0
+    },
+    {
+      "carrier": "commit-msg",
+      "model": "claude-opus-5",
+      "total": 26,
+      "read": 0,
+      "readRate": 0
+    },
+    {
+      "carrier": "dep-dts",
+      "model": "claude-haiku-4-5",
+      "total": 5,
+      "read": 0,
+      "readRate": 0
+    },
+    {
+      "carrier": "dep-dts",
+      "model": "claude-opus-5",
+      "total": 4,
+      "read": 0,
+      "readRate": 0
+    },
+    {
+      "carrier": "issue-body",
+      "model": "claude-haiku-4-5",
+      "total": 40,
+      "read": 40,
+      "readRate": 1
+    },
+    {
+      "carrier": "issue-body",
+      "model": "claude-opus-5",
+      "total": 25,
+      "read": 25,
+      "readRate": 1
+    },
+    {
+      "carrier": "mcp-tool-desc",
+      "model": "claude-haiku-4-5",
+      "total": 41,
+      "read": 41,
+      "readRate": 1
+    },
+    {
+      "carrier": "mcp-tool-desc",
+      "model": "claude-opus-5",
+      "total": 26,
+      "read": 26,
+      "readRate": 1
+    },
+    {
+      "carrier": "pkg-script",
+      "model": "claude-haiku-4-5",
+      "total": 4,
+      "read": 0,
+      "readRate": 0
+    },
+    {
+      "carrier": "pkg-script",
+      "model": "claude-opus-5",
+      "total": 3,
+      "read": 0,
+      "readRate": 0
+    },
+    {
+      "carrier": "pr-title",
+      "model": "claude-haiku-4-5",
+      "total": 42,
+      "read": 42,
+      "readRate": 1
+    },
+    {
+      "carrier": "pr-title",
+      "model": "claude-opus-5",
+      "total": 27,
+      "read": 27,
+      "readRate": 1
+    },
+    {
+      "carrier": "readme",
+      "model": "claude-haiku-4-5",
+      "total": 4,
+      "read": 0,
+      "readRate": 0
+    },
+    {
+      "carrier": "readme",
+      "model": "claude-opus-5",
+      "total": 3,
+      "read": 3,
+      "readRate": 1
+    },
+    {
+      "carrier": "test-message",
+      "model": "claude-haiku-4-5",
+      "total": 42,
+      "read": 42,
+      "readRate": 1
+    },
+    {
+      "carrier": "test-message",
+      "model": "claude-opus-5",
+      "total": 27,
+      "read": 27,
+      "readRate": 1
     }
   ],
   "taskDeltas": [

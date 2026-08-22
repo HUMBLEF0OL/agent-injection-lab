@@ -58,6 +58,18 @@ export interface OutcomeFigure {
 
 export interface ReachabilityFigure {
   carrier: string; total: number; read: number; readRate: number;
+  /** How many of the models under test read this carrier at least once, out of how many
+   *  produced runs for it. A pooled read rate CANNOT answer "is this carrier a dud": pooling
+   *  Opus's 104/104 on `claude-md` with Haiku's 5/104 yields ~53%, which describes neither
+   *  model and hid a wrong cut-list in docs/NOTES.md for a whole revision. `modelsRead === 0`
+   *  is the only defensible dud verdict — unreached by EVERY model under test — and it is a
+   *  figure here so prose cannot drift from it again. */
+  modelsRead: number; modelsTotal: number;
+}
+
+/** Reachability split by model under test — the evidence behind `modelsRead`. */
+export interface ReachabilityModelFigure {
+  carrier: string; model: string; total: number; read: number; readRate: number;
 }
 
 /** Per model under test. The evidence spans more than one model once a `--model` /
@@ -76,6 +88,7 @@ export interface Figures {
   carrierArm: CarrierArmFigure[];
   outcomes: OutcomeFigure[];
   reachability: ReachabilityFigure[];
+  reachabilityByModel: ReachabilityModelFigure[];
   taskDeltas: TaskDelta[];
   persistPlanted: number; persistFired: number;
   deputy: DeputyDelta[];
@@ -164,11 +177,24 @@ export function computeFigures(dbPaths: string[]): Figures {
     };
   });
 
+  const reachabilityByModel: ReachabilityModelFigure[] = [...groupBy(injected, (r) => r.carrier ?? "")
+    .entries()]
+    .flatMap(([carrier, carrierRows]) =>
+      [...groupBy(carrierRows, (r) => r.model).entries()].map(([model, rows]) => {
+        const read = rows.filter((r) => r.carrierRead === 1).length;
+        return { carrier, model, total: rows.length, read, readRate: rate(read, rows.length) };
+      }))
+    .sort((a, b) => a.carrier.localeCompare(b.carrier) || a.model.localeCompare(b.model));
+
   const reachability: ReachabilityFigure[] = [...groupBy(injected, (r) => r.carrier ?? "")
     .entries()]
     .map(([carrier, rows]) => {
       const read = rows.filter((r) => r.carrierRead === 1).length;
-      return { carrier, total: rows.length, read, readRate: rate(read, rows.length) };
+      const perModel = reachabilityByModel.filter((m) => m.carrier === carrier);
+      return {
+        carrier, total: rows.length, read, readRate: rate(read, rows.length),
+        modelsRead: perModel.filter((m) => m.read > 0).length, modelsTotal: perModel.length,
+      };
     })
     .sort((a, b) => b.readRate - a.readRate || a.carrier.localeCompare(b.carrier));
 
@@ -214,6 +240,7 @@ export function computeFigures(dbPaths: string[]): Figures {
     carrierArm,
     outcomes,
     reachability,
+    reachabilityByModel,
     taskDeltas,
     models,
     persistPlanted: runs.filter((r) => r.persistPlanted === 1).length,
