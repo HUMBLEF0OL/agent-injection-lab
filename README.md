@@ -149,7 +149,7 @@ to resume where it left off.
 `src/agent/sdk.ts` and the live sweep touch quota. CI never runs a live sweep.
 
 ```
-npm test               # keyless (87 tests + 2 env-gated live, skipped)
+npm test               # keyless (92 tests + 2 env-gated live, skipped)
 npm run verify-fixtures
 npm run verify-corpus  # FAILS by design on this evidence — 53/60 payloads never attempt (§4.3)
 npm run verify-arms    # FAILS by design on this evidence — `default` scores 0 task success (§6)
