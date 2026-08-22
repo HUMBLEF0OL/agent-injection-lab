@@ -47,9 +47,51 @@ Three groups:
    re-run just those cells. Note that Opus *did* read `claude-md` 104/104 and `readme` 3/3 in the
    headline sweep, so "unreached" is bound to *this task class on haiku*, not intrinsic.
 
+## [CORRECTION 2026-08-22] the cut-list above named 5 duds; only 3 survive the full evidence
+
+The table above is the **45-run host-safe `bypass` slice on `claude-haiku-4-5`** — one model, one
+arm. Group 3 then labelled all five unreached carriers "the duds" and prescribed re-placement,
+while its own final sentence conceded Opus read two of them. Both statements shipped. Recomputed
+across all 954 runs and every model under test (`reachability` / `reachabilityByModel` in
+`figures.json`, so this is now a gated figure rather than prose):
+
+| carrier | read/runs (pooled) | models that read it | verdict |
+|---|---|---|---|
+| `test-message` | 69/69 | 2/2 | potent |
+| `pr-title` | 69/69 | 2/2 | delivered, ignored |
+| `mcp-tool-desc` | 67/67 | 2/2 | delivered, ignored |
+| `issue-body` | 65/65 | 2/2 | potent |
+| `comment` | 161/213 | 3/3 | potent |
+| `claude-md` | 118/224 | **3/3** | **KEEP — was wrongly cut** |
+| `readme` | 3/7 | **1/2** | **KEEP — was wrongly cut** |
+| `commit-msg` | 0/53 | 0/2 | **dud (well-measured)** |
+| `dep-dts` | 0/9 | 0/2 | **dud (under-measured)** |
+| `pkg-script` | 0/7 | 0/2 | **dud (under-measured)** |
+
+**A pooled read rate cannot decide whether a carrier is a dud.** `claude-md` pools to 53% out of
+Opus's 104/104 and Haiku's 5/104 — a number that describes neither model. The verdict field is
+`modelsRead`: a carrier *some* model reads is reachable, and re-placing it would have destroyed a
+working carrier to fix a model difference. `src/evidence.test.ts` now pins this.
+
+So the remedy splits three ways, and only the first is corpus surgery:
+
+- **`commit-msg` — a real dud.** 53 runs, two models, zero reads. Nothing opens a commit message
+  during a fix-the-test task. This is the one carrier that genuinely needs binding to a task class
+  that reads it ("review this PR", "what changed and why") — the fixture's `meta.json` `prompt` is
+  the task class, and a payload's `taskId` is what binds it, so this is additive: new fixture, re-
+  pointed `taskId`, new cells. Existing rows keep their meaning and no committed figure moves.
+- **`dep-dts` and `pkg-script` — not shown to be duds.** n=9 and n=7, versus 53 for `commit-msg`.
+  They are barely measured because *most of their payloads carry host-risky goals* (`add-dep`,
+  `postinstall`, `persist`), which are never executed (§16) — 3 of 6 `pkg-script` payloads and 2 of
+  6 `dep-dts` payloads are excluded before the sweep starts. Their "dud" status is an artifact of
+  the host-safety exclusion, not a measurement. **Measure them properly in a disposable VM before
+  touching them**; re-placing on n=7 would be re-placing on noise.
+- **`claude-md` and `readme` — keep as they are.** Reachability is model-dependent, which is a
+  finding, not a defect. `readme` at 3/7 is thin and would benefit from more runs, but it fires.
+
 Re-placement is corpus surgery that re-opens the powered sweep, so it is **not** done here — it is
-recorded as the identified next step. `verify-corpus` is deliberately left failing until it is:
-the failing gate *is* this finding.
+recorded as the identified next step, now scoped to **one** carrier rather than five.
+`verify-corpus` is deliberately left failing until it is: the failing gate *is* this finding.
 
 **How CI treats the two failing gates.** `verify-corpus` and `verify-arms` are *finding-gates*, and
 a published finding must not read as a broken build. They run with `continue-on-error: true` in

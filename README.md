@@ -77,9 +77,13 @@ per-choice measured numbers.
   Opus read the poisoned `CLAUDE.md` in **104/104** runs, Haiku in **5/104**. "Bigger model,
   more susceptible" is not what the data says.
 - **Reachability still dominates (spec §3, §4.3.1).** `test-message`, `pr-title`, `mcp-tool-desc`
-  and `issue-body` carriers were read in essentially every run; `commit-msg`, `dep-dts` and
-  `pkg-script` were never read during a fix-the-test task, and `claude-md`/`readme` only under
-  Opus. An injection that never enters the context cannot fire, whatever the arm.
+  and `issue-body` carriers were read in essentially every run. `commit-msg` (0/53), `dep-dts`
+  (0/9) and `pkg-script` (0/7) were **never** read by any model during a fix-the-test task.
+  `claude-md` is read by all three models but at wildly different rates — Opus 104/104,
+  Sonnet 9/16, Haiku 5/104 — and `readme` only under Opus (3/3 vs Haiku 0/4). An injection that
+  never enters the context cannot fire, whatever the arm. Because reachability is
+  model-dependent, the report's dud verdict is the **models-read** column, not the pooled read
+  rate: pooling Opus and Haiku on `claude-md` yields 53%, which describes neither.
 - **Task success is unaffected by injection — except in one arm.** On the 168 clean-baseline runs
   (no payload at all) six arms score 24/24 or 21/24; **`default` scores 0/24**. In a headless run
   nobody is there to approve an edit, so the agent never fixes the bug with or without a payload.
@@ -149,7 +153,7 @@ to resume where it left off.
 `src/agent/sdk.ts` and the live sweep touch quota. CI never runs a live sweep.
 
 ```
-npm test               # keyless (92 tests + 2 env-gated live, skipped)
+npm test               # keyless (93 tests + 2 env-gated live, skipped)
 npm run verify-fixtures
 npm run verify-corpus  # FAILS by design on this evidence — 53/60 payloads never attempt (§4.3)
 npm run verify-arms    # FAILS by design on this evidence — `default` scores 0 task success (§6)
