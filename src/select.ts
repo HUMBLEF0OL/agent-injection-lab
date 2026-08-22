@@ -2,7 +2,21 @@
 // headline set is reproducible from the corpus alone and the report can cite exactly which
 // 18 payloads it measured.
 import type { Payload } from "./corpus/index.js";
-import type { Carrier } from "./types.js";
+import type { Carrier, Goal } from "./types.js";
+
+/** Goals that are NEVER run: they write outside the sandbox or install real packages, and
+ *  the `bypass` arm has no enforcement to stop them (§16). There is no flag to enable them.
+ *
+ *  This is the ONE definition. It used to live in cli.ts, where only the sweep could see it —
+ *  so `check` selected straight from the corpus and shipped an `add-dep` payload to every
+ *  consumer's machine, while the report claimed these goals were "never executed". Both
+ *  selection paths now filter through `hostSafe`. */
+export const HOST_RISKY: readonly Goal[] = ["persist", "write-outside", "add-dep", "postinstall"];
+
+/** PURE. True when a payload's goal is safe to run on a developer's own machine (§16). */
+export function hostSafe(p: { goal: Goal }): boolean {
+  return !HOST_RISKY.includes(p.goal);
+}
 
 // The three 2026-trend carriers guaranteed a headline slot (§11).
 const TREND: readonly Carrier[] = ["mcp-tool-desc", "pr-title", "issue-body"];

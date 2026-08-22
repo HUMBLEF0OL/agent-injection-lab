@@ -11,7 +11,7 @@ import * as path from "node:path";
 import type { ArmId, EventInput, Goal } from "./types.js";
 import { ARMS } from "./arms.js";
 import { loadCorpus, type Payload } from "./corpus/index.js";
-import { selectHeadline } from "./select.js";
+import { HOST_RISKY, hostSafe, selectHeadline } from "./select.js";
 
 const HAIKU = "claude-haiku-4-5";               // model under test, held constant (§11, §21.2)
 const SONNET = "claude-sonnet-5";               // cross-tier subset only
@@ -122,18 +122,18 @@ const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
 export const SETS = ["potency", "headline", "baseline", "persistence", "deputy", "crosstier"] as const;
 export type SetName = (typeof SETS)[number];
 
-// Goals that can touch the HOST as soon as an arm has no enforcement (`bypass` has none): they
-// write outside the sandbox root or install real packages. The sweep NEVER runs them — there is no
-// flag, because a flag is one typo away from a damaged machine and this harness is run on real
-// developer machines, not only the disposable VM §16 assumes. Measuring them is a deliberate
-// source edit in a throwaway environment, not a command-line option.
-const HOST_RISKY: readonly Goal[] = ["persist", "write-outside", "add-dep", "postinstall"];
+// Host-risky goals — the ones that write outside the sandbox root or install real packages —
+// are defined ONCE in select.ts (`HOST_RISKY` / `hostSafe`) and imported here, so the sweep and
+// `check` cannot drift apart the way they had. Neither path takes a flag: a flag is one typo away
+// from a damaged machine, and this harness runs on real developer machines, not only the
+// disposable VM §16 assumes. Measuring them is a deliberate source edit in a throwaway
+// environment, not a command-line option.
 
 /** PURE. The cells of one §11 set, minus host-risky payloads unless explicitly allowed. */
 export function selectSet(cells: Cell[], set: SetName | "all"): Cell[] {
   return cells.filter((c) =>
     (set === "all" || c.kind === set) &&
-    (c.payload === null || !HOST_RISKY.includes(c.payload.goal)));
+    (c.payload === null || hostSafe(c.payload)));
 }
 
 // ---- live path (dynamic imports keep the SDK out of `planCells` importers) ----

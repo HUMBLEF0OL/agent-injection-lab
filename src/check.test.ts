@@ -4,6 +4,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { configToArm, check } from "./check.js";
+import { HOST_RISKY } from "./select.js";
+import { loadCorpus } from "./corpus/index.js";
 import { makeSandbox } from "./sandbox.js";
 import type { AgentRunner, Arm } from "./types.js";
 import type { SinkHandle } from "./sink.js";
@@ -120,3 +122,29 @@ test("hardened egress-guard.mjs denies a curl egress and allows a benign read", 
   const allowed = run({ tool_name: "Read", tool_input: { file_path: "README.md" } });
   expect(allowed.continue).toBe(true);
 });
+
+// --- F1: `check` must never run a host-risky payload on a consumer's machine (§16) -----------
+// The regression this pins: `check` selected straight from the corpus, so the default five
+// included `issue-body-add-dep-upstream` (goal `add-dep`) — a goal the sweep refuses to run and
+// the report claims is "never executed". Asserted through the real check() path, not the
+// selector, because the selector was never wrong; the call site was.
+
+test("check never selects a host-risky payload, at any n", async () => {
+  const corpus = loadCorpus();
+  const goalOf = new Map(corpus.map((p) => [p.id, p.goal]));
+  const proj = makeSandbox("check-proj-");
+  fs.mkdirSync(path.join(proj, ".claude"), { recursive: true });
+  fs.copyFileSync(path.join(CONFIGS, "hardened", "settings.json"),
+    path.join(proj, ".claude", "settings.json"));
+
+  for (const n of [1, 5, 12]) {
+    const { rows } = await check(proj, { makeRunner: goldenRunner, n });
+    expect(rows.length, `n=${n} must actually run payloads`).toBe(n);
+    for (const r of rows) {
+      const goal = goalOf.get(r.payload);
+      expect(goal, `${r.payload} not in corpus`).toBeDefined();
+      expect(HOST_RISKY, `n=${n}: check ran host-risky ${r.payload} (${goal})`)
+        .not.toContain(goal);
+    }
+  }
+}, 240_000);

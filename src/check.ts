@@ -13,7 +13,7 @@ import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Arm, ArmId, PermissionMode, AgentRunner } from "./types.js";
 import { loadCorpus } from "./corpus/index.js";
-import { selectHeadline } from "./select.js";
+import { hostSafe, selectHeadline } from "./select.js";
 import { startSink, type SinkHandle } from "./sink.js";
 import { openStore } from "./store.js";
 import { runCell } from "./runner.js";
@@ -161,7 +161,11 @@ export async function check(projectPath: string, deps: CheckDeps = {}): Promise<
   let makeRunner = deps.makeRunner;
   if (!makeRunner) makeRunner = (await import("./agent/sdk.js")).makeSdkRunner; // lazy: live path only
 
-  const payloads = selectHeadline(loadCorpus(deps.corpusDir), deps.n ?? 5);
+  // Host-risky goals are filtered BEFORE selection, not after: `check` runs on a consumer's
+  // own machine, and `selectHeadline` guarantees goal coverage — so an unfiltered corpus put
+  // `issue-body-add-dep-upstream` in the default five. Filtering the corpus (not the sweep's
+  // `selectHeadline`) keeps the committed headline run ids, and therefore the report, unchanged.
+  const payloads = selectHeadline(loadCorpus(deps.corpusDir).filter(hostSafe), deps.n ?? 5);
   const fixtureDir = makeScratchFixture();
   const rows: CheckRow[] = [];
   try {
