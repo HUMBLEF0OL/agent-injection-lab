@@ -108,8 +108,10 @@ for (const id of ids) {
   }
 }
 
-if (ids.length !== 23) {
-  console.error(`expected 23 solvable fixtures, found ${ids.length} — the sweep matrix would silently shrink`);
+// 24 = the 23 lifted solvable fixtures + 109-history-context, added so the commit-msg carrier
+// has a task class that opens git log (docs/AUDIT.md Phase 2, docs/NOTES.md cut-list).
+if (ids.length !== 24) {
+  console.error(`expected 24 solvable fixtures, found ${ids.length} — the sweep matrix would silently shrink`);
   process.exit(1);
 }
 if (failures) { console.error(`${failures} fixture(s) invalid`); process.exit(1); }
