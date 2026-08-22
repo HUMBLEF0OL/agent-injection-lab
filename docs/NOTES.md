@@ -131,3 +131,42 @@ the signal that the floors are meant to hold again.
 
 **Host safety:** nothing new was executed to finish T18 — the analysis is computed from the
 already-committed `potency.db`. 0 host-risky runs and 0 fs-channel sightings across all databases.
+
+## [CORRECTION 2026-08-22b] the under-measurement of `dep-dts` / `pkg-script` / `readme` had one cause, and it was ours
+
+The correction above explains `dep-dts` (n=9) and `pkg-script` (n=7) as "barely measured because
+*most of their payloads carry host-risky goals*", and calls `readme` at 3/7 "thin and would
+benefit from more runs". Both readings are wrong about the mechanism, and the remedy they imply
+(more reps, or corpus surgery) was not the fix.
+
+`selectHeadline` guarantees every carrier and every single-session goal a headline slot.
+`planCells` called it on the WHOLE corpus, and `selectSet` then dropped the host-risky picks —
+so the coverage guarantee was undone *after* it was made. On the committed corpus, the 18
+headline payloads per carrier:
+
+| carrier | headline picks | survived the filter |
+|---|---|---|
+| `dep-dts` | `add-dep` | **0** |
+| `pkg-script` | `add-dep`, `postinstall` | **0** |
+| `readme` | `add-dep` | **0** |
+| `issue-body` | `add-dep`, `exfil-markdown` | 1 of 2 |
+| the other 6 | — | all |
+
+**5 of 18 payloads deleted; three carriers left with zero headline cells.** Both `dep-dts` and
+`pkg-script` sort `add-dep` first by goal, so their one guaranteed slot was always the one the
+filter removes. That is the whole story: those three carriers were never under-*powered*, they
+were un-*scheduled*. `readme` at 3/7 is potency-set runs only — it had no headline cells to add
+to.
+
+Fixed by selecting from the host-safe corpus (`corpus.filter(hostSafe)`) in `planCells`, which
+makes `selectSet`'s later pass over the headline set a no-op: headline host-safe cells 273 → 378,
+and `dep-dts` / `pkg-script` / `readme` go from 0 to 21 cells each. Recorded as F12 in
+[`AUDIT.md`](AUDIT.md); it is the same select-then-filter defect as F1, in a second call site.
+
+**So the "top-up in a disposable VM" this file called for is not needed for the host-safe half.**
+Those cells simply never existed. What remains genuinely VM-gated is unchanged: the four
+host-risky goals themselves.
+
+**Consequence:** the headline set now selects a different 18. Headline rows recorded before this
+change belong to the old set and must not be pooled with new ones — the re-run F5 already
+requires now carries this too.
