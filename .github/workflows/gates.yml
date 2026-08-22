@@ -6,6 +6,10 @@ name: gates
 on:
   push:
   pull_request:
+  # Manual trigger. Re-running a completed run is NOT a substitute: the rerun uploads a second
+  # `github-pages` artifact into the same run and deploy-pages refuses with "Multiple artifacts
+  # named github-pages ... Artifact count is 2". A fresh run is the only clean re-deploy.
+  workflow_dispatch:
 
 permissions:
   contents: read
